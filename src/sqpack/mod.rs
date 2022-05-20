@@ -1,21 +1,25 @@
 mod lib;
 
 use std::path::Path;
+use std::fmt::Debug;
 use std::default::Default;
 use std::collections::HashMap;
 
 // SqPackIndex
 
 #[derive(Default)]
+#[derive(Debug)]
 pub struct SqPackIndex {
-	cat: u8,
-	ex: u8,
-	chunk: u8
 }
 
 // SqPackChunk
 
+#[derive(Default)]
+#[derive(Debug)]
 pub struct SqPackChunk {
+	cat: u8,
+	ex: u8,
+	chunk: u8,
 	map: HashMap<String, SqPackIndex>
 }
 
@@ -38,6 +42,21 @@ impl SqPack {
 		for file in files.expect("read_dir call failed") {
 			if let Ok(file) = file {
 				let path = file.path();
+
+				let ext = path.extension().expect("index");
+				if ext != "index" { continue };
+
+				let stem = path.file_stem().unwrap().to_str().unwrap();
+				let [cat, ex, chk] = lib::parse_dat_stem(stem);
+
+				let index = SqPackChunk {
+					cat: cat,
+					ex: ex,
+					chunk: chk,
+					..Default::default()
+				};
+
+				println!("{:?}", index);
 			}
 		}
 
