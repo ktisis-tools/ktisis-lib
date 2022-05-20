@@ -6,24 +6,43 @@ use std::collections::HashMap;
 
 // SqPackIndex
 
+#[derive(Default)]
 pub struct SqPackIndex {
+	cat: u8,
+	ex: u8,
+	chunk: u8
+}
+
+// SqPackChunk
+
+pub struct SqPackChunk {
+	map: HashMap<String, SqPackIndex>
 }
 
 // SqPack
 
 #[derive(Default)]
-pub struct SqPack<'a> {
-	path: &'a str,
-	map: HashMap<&'a str, SqPackIndex>
+pub struct SqPack {
+	path: String,
+	chunks: Vec<SqPackChunk>
 }
 
-impl SqPack<'_> {
+impl SqPack {
 	fn index_repo(&self, repo: &str) {
-		let repo_path = Path::new(self.path).join(repo);
+		let repo_path = Path::new(&self.path).join(repo);
+		assert!(repo_path.exists(), "repo does not exist in path: {repo}");
 
-		assert!(repo_path.exists(), "repo path does not exist: {repo}");
+		let files = repo_path.read_dir();
+		assert!(files.is_ok(), "failed to read repo '{repo}': {}", files.err().unwrap());
+
+		for file in files.expect("read_dir call failed") {
+			if let Ok(file) = file {
+				let path = file.path();
+			}
+		}
 
 		for (cat, id) in &lib::CATEGORIES {
+
 		}
 	}
 
@@ -34,17 +53,17 @@ impl SqPack<'_> {
 
 // Public methods
 
-pub fn load_repo<'a>(path: &'a str, repo: &'a str) -> SqPack<'a> {
+pub fn load_repo(path: &str, repo: &str) -> SqPack {
 	assert!(Path::new(path).exists(), "sqpack path does not exist: {path}");
 
 	let sqpack = SqPack {
-		path: path,
+		path: path.to_string(),
 		..Default::default()
 	};
 	sqpack.index_repo(repo);
 	return sqpack;
 }
 
-pub fn load_repos<'a>(path: &'a str) {
+pub fn load_repos(path: &str) {
 	
 }
