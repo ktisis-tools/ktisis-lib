@@ -1,14 +1,12 @@
 pub mod headers;
-pub mod index;
+pub mod files;
 
-use std::io::Read;
-use std::io::Seek;
 use std::fs::File;
 use std::path::Path;
 use std::default::Default;
 
 use binread::prelude::*;
-use binread::{BinRead, io::Cursor};
+use binread::{BinRead};
 
 // DatReader
 
@@ -33,7 +31,6 @@ impl DatReader {
 
 	pub fn read<T: BinRead>(&self) -> T {
 		let res: T = self.file.as_ref().unwrap().read_le().unwrap();
-
 		return res;
 	}
 }

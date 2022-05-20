@@ -30,16 +30,16 @@ enum Platform {
 
 // Methods
 
-pub fn hex_str(args: &[i32]) -> String {
+pub fn hex_str<T: std::fmt::LowerHex>(args: &[T]) -> String {
 	let mut res: String = "".to_string();
 	for i in args {
-		res += format!("{:02}", i).as_str();
+		res += format!("{:02x}", i).as_str();
 	}
 	return res;
 }
 
 pub fn dat_str(cat: i32, ex: i32, chunk: i32, ftype: &str, plat: &str) -> String {
-	return format!("{}.{}.{}", hex_str(&[cat, ex, chunk]), ftype, plat);
+	return format!("{}.{}.{}", hex_str::<i32>(&[cat, ex, chunk]), ftype, plat);
 }
 
 pub fn parse_dat_stem(name: &str) -> [u8; 3] {

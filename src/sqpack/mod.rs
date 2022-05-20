@@ -1,32 +1,19 @@
-mod lib;
+pub mod lib;
 mod parser;
 
-use parser::*;
-use parser::headers::*;
+use parser::DatReader;
+use parser::files::*;
 
 use std::path::Path;
-use std::fmt::Debug;
 use std::default::Default;
-use std::collections::HashMap;
-
-use binread::{BinRead, io::Cursor};
-
-// SqPackIndex
-
-#[derive(Default)]
-#[derive(Debug)]
-pub struct SqPackIndex {
-}
 
 // SqPackChunk
 
 #[derive(Default)]
-#[derive(Debug)]
 pub struct SqPackChunk {
 	cat: u8,
 	ex: u8,
-	chunk: u8,
-	map: HashMap<String, SqPackIndex>
+	chunk: u8
 }
 
 // SqPack
@@ -41,14 +28,11 @@ impl SqPack {
 	// File Indexing
 
 	fn index_file(&self, path: &Path) {
-		let stuff = DatReader::open(path).read::<IndexHeader>();
-
-		println!("{:?}", stuff);
-
-		//let parse = DatReader::read::<parser::index::IndexHeader>();
+		let stuff = DatReader::open(path).read::<SqPackIndex>();
+		println!("{:?}: {} entries indexed.", path.file_name().unwrap(), stuff.index.data_size / 16);
 	}
 
-	fn index_repo(&self, repo: &str) {
+	fn index_repo(&mut self, repo: &str) {
 		let repo_path = Path::new(&self.path).join(repo);
 		assert!(repo_path.exists(), "repo does not exist in path: {repo}");
 
@@ -71,13 +55,9 @@ impl SqPack {
 					chunk: chk,
 					..Default::default()
 				};
-
 				self.index_file(&path);
+				self.chunks.push(index);
 			}
-		}
-
-		for (cat, id) in &lib::CATEGORIES {
-
 		}
 	}
 
@@ -93,7 +73,7 @@ impl SqPack {
 pub fn load_repo(path: &str, repo: &str) -> SqPack {
 	assert!(Path::new(path).exists(), "sqpack path does not exist: {path}");
 
-	let sqpack = SqPack {
+	let mut sqpack = SqPack {
 		path: path.to_string(),
 		..Default::default()
 	};
