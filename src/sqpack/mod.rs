@@ -1,10 +1,15 @@
 mod lib;
 mod parser;
 
+use parser::*;
+use parser::headers::*;
+
 use std::path::Path;
 use std::fmt::Debug;
 use std::default::Default;
 use std::collections::HashMap;
+
+use binread::{BinRead, io::Cursor};
 
 // SqPackIndex
 
@@ -33,6 +38,16 @@ pub struct SqPack {
 }
 
 impl SqPack {
+	// File Indexing
+
+	fn index_file(&self, path: &Path) {
+		let stuff = DatReader::open(path).read::<IndexHeader>();
+
+		println!("{:?}", stuff);
+
+		//let parse = DatReader::read::<parser::index::IndexHeader>();
+	}
+
 	fn index_repo(&self, repo: &str) {
 		let repo_path = Path::new(&self.path).join(repo);
 		assert!(repo_path.exists(), "repo does not exist in path: {repo}");
@@ -57,7 +72,7 @@ impl SqPack {
 					..Default::default()
 				};
 
-				println!("{:?}", index);
+				self.index_file(&path);
 			}
 		}
 
@@ -65,6 +80,8 @@ impl SqPack {
 
 		}
 	}
+
+	// File Fetching
 
 	fn get_file(&self, path: &str) {
 
