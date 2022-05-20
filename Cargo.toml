@@ -6,5 +6,5 @@ repository = "https://github.com/ktisis-tools/ktisis-reader"
 edition = "2021"
 
 [dependencies]
-nom = "7.1.1"
+binread = "^2.2.0"
 phf = { version = "0.10", features = ["macros"] }

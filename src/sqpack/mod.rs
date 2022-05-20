@@ -1,4 +1,5 @@
 mod lib;
+mod parser;
 
 use std::path::Path;
 use std::fmt::Debug;
