@@ -20,6 +20,7 @@ pub struct SqPackIndex {
 	pub map: HashMap<u64, HashTableEntry>
 }
 
+#[derive(Debug)]
 pub struct HashTableEntry {
 	pub hash: u64,
 	pub data: u32,

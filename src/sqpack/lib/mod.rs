@@ -1,3 +1,5 @@
+pub mod crc32;
+
 use phf::phf_map;
 
 // Constants
@@ -59,4 +61,13 @@ pub fn parse_repo(name: &str) -> u8 {
 	} else {
 		panic!("Invalid repo name: {name}")
 	}
+}
+
+pub fn hash_path(path: &str) -> u64 {
+	let last = path.rfind("/").unwrap();
+
+	let dir = crc32::hash(&path[..last]) as u64;
+	let file = crc32::hash(&path[last+1..]) as u64;
+
+	return ((dir << 32) | file).into();
 }

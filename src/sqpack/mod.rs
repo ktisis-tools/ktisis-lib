@@ -3,7 +3,9 @@ mod parser;
 pub mod reader;
 
 use parser::DatReader;
-use parser::files::*;
+use parser::files::{SqPackIndex, HashTableEntry};
+
+use lib::crc32;
 
 use reader::chunk::ChunkReader;
 
@@ -28,8 +30,8 @@ impl SqPack {
 			chunks: HashMap::<u8, HashMap<u32, SqPackChunk>>::new()
 		}
 	}
-
-	// Indexing
+	
+	////* Indexing *////
 
 	pub fn index_repo(&mut self, repo: &str) {
 		let repo_path = Path::new(&self.path).join(repo);
@@ -81,7 +83,7 @@ impl SqPack {
 		// Index chunk
 
 		let index = DatReader::open(&path).read::<SqPackIndex>();
-		println!("{:?}: {} entries indexed.", path.file_name().unwrap(), index.map.keys().len());
+		//println!("{:?}: {} entries indexed.", path.file_name().unwrap(), index.map.keys().len());
 
 		let chunk = SqPackChunk {
 			cat: cat,
@@ -109,6 +111,25 @@ impl SqPack {
 			chunk.hash().try_into().unwrap(),
 			chunk
 		);
+	}
+
+	////* File Handling *////
+
+	pub fn find_file(&self, path: &str) -> Option<&HashTableEntry> {
+		// Category
+		let first = path.find("/").unwrap();
+		let cat = category(&path[..first]);
+		// Hash
+		let hash = lib::hash_path(path);
+		// Search chunks
+		for (_cat, chunk) in &self.chunks[&cat] {
+			if chunk.index.map.contains_key(&hash) {
+				return chunk.index.map.get(&hash);
+			} else {
+				continue;
+			}
+		}
+		return None;
 	}
 }
 

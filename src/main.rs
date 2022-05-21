@@ -20,7 +20,9 @@ fn main() {
 	let mut sqpack = SqPack::new(PATH);
 	//sqpack.index_category(sqpack::category("exd"));
 	sqpack.index_category(sqpack::category("chara"));
-	//sqpack.find_file("chara/xls/charamake/human.cmp");
+
+	let find = sqpack.find_file("chara/xls/charamake/human.cmp");
+	println!("{:?}", find.unwrap());
 	//sqpack.index_category(sqpack::category("bg"));
 
 	let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
