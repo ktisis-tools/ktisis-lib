@@ -2,7 +2,7 @@ use phf::phf_map;
 
 // Constants
 
-pub static CATEGORIES: phf::Map<&'static str, u8> = phf_map! {
+pub static CATEGORY: phf::Map<&'static str, u8> = phf_map! {
 	"common"		=> 0,
 	"bgcommon"		=> 1,
 	"bg"			=> 2,
@@ -38,8 +38,8 @@ pub fn hex_str<T: std::fmt::LowerHex>(args: &[T]) -> String {
 	return res;
 }
 
-pub fn dat_str(cat: i32, ex: i32, chunk: i32, ftype: &str, plat: &str) -> String {
-	return format!("{}.{}.{}", hex_str::<i32>(&[cat, ex, chunk]), ftype, plat);
+pub fn dat_str(cat: u8, ex: u8, chunk: u8, ftype: &str) -> String {
+	return format!("{}.{}.{}", hex_str::<u8>(&[cat, ex, chunk]), "win32", ftype);
 }
 
 pub fn parse_dat_stem(name: &str) -> [u8; 3] {
@@ -53,4 +53,13 @@ pub fn parse_dat_stem(name: &str) -> [u8; 3] {
 	let chk = u8::from_str_radix(&dat[4..6], 16).unwrap();
 
 	return [cat, ex, chk]; // TODO: platform
+}
+
+pub fn parse_repo(name: &str) -> u8 {
+	if name == "ffxiv" {
+		return 0;
+	} else if &name[..2] == "ex" {
+		return name[2..].parse::<u8>().unwrap();
+	}
+	panic!("Invalid repo name: {name}");
 }

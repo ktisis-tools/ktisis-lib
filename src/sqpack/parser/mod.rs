@@ -16,10 +16,15 @@ pub struct DatReader {
 }
 
 impl DatReader {
-	pub fn open(path: &Path) -> DatReader {
+	pub fn new() -> DatReader {
 		let mut reader = DatReader {
 			..Default::default()
 		};
+		return reader;
+	}
+
+	pub fn open(path: &Path) -> DatReader {
+		let mut reader = DatReader::new();
 
 		reader.file = match File::open(&path) {
 			Err(err) => panic!("failed to open path '{}': {}", path.display(), err),
