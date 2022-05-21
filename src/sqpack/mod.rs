@@ -1,34 +1,34 @@
 mod lib;
 mod parser;
-mod reader;
+pub mod reader;
 
 use parser::DatReader;
 use parser::files::*;
 
-use reader::SqPackRead;
+use reader::SqPackReader;
+use reader::chunk::ChunkReader;
 
 use std::path::Path;
 use std::default::Default;
 use std::collections::HashMap;
 
-// SqPackChunk
-
-pub struct SqPackChunk {
-	cat: u8,
-	ex: u8,
-	chunk: u8,
-	index: SqPackIndex
-}
-
 // SqPack
 
-#[derive(Default)]
 pub struct SqPack {
 	path: String,
-	chunks: HashMap<u8, Vec<SqPackChunk>>
+	chunks: HashMap<u8, HashMap<u32, SqPackChunk>> // category: [chunks]
 }
 
 impl SqPack {
+	pub fn new(path: &str) -> SqPack {
+		assert!(Path::new(path).exists(), "sqpack path does not exist: {path}");
+
+		return SqPack {
+			path: path.to_string(),
+			chunks: HashMap::<u8, HashMap<u32, SqPackChunk>>::new()
+		}
+	}
+
 	// Indexing
 
 	pub fn index_repo(&mut self, repo: &str) {
@@ -99,39 +99,53 @@ impl SqPack {
 		if !self.chunks.contains_key(&chunk.cat) {
 			self.chunks.insert(
 				chunk.cat,
-				Vec::<SqPackChunk>::new()
+				HashMap::<u32, SqPackChunk>::new()
 			);
 		}
 
 		let cat_chunks = self.chunks.get_mut(&chunk.cat).unwrap();
-		cat_chunks.push(chunk);
-	}
-
-	// File Fetching
-
-	pub fn open_file(&self, path: &str) {
-
-	}
-
-	pub fn get_file(&self, path: &str) {
-
+		cat_chunks.insert(
+			chunk.hash().try_into().unwrap(),
+			chunk
+		);
 	}
 }
 
-// SqPack
+// SqPackChunk
 
-pub fn new(dir: &str) -> SqPack {
-	assert!(Path::new(dir).exists(), "sqpack path does not exist: {dir}");
-
-	let mut sqpack = SqPack {
-		path: dir.to_string(),
-		..Default::default()
-	};
-	return sqpack;
+pub struct SqPackChunk {
+	cat: u8,
+	ex: u8,
+	chunk: u8,
+	index: SqPackIndex
 }
+
+impl SqPackChunk {
+	pub fn hash(&self) -> u32 {
+		return ((self.cat as u32) ^ (self.ex as u32) << 8 ^ (self.chunk as u32) << 16).into();
+	}
+
+	pub fn ex_dir(&self) -> String {
+		if self.ex == 0 {
+			return "ffxiv".to_owned();
+		} else {
+			return format!("ex{}", self.ex);
+		}
+	}
+
+	pub fn dat_str(&self) -> String {
+		return lib::hex_str::<u8>(&[self.cat, self.ex, self.chunk]);
+	}
+
+	pub fn dat_path(&self, ext: &str) -> String {
+		return format!("{}/{}.win32.{}", self.ex_dir(), self.dat_str(), ext);
+	}
+}
+
+// Global
 
 pub fn load_all(dir: &str) -> SqPack {
-	let mut sqpack = new(dir);
+	let mut sqpack = SqPack::new(dir);
 
 	let path = Path::new(dir);
 
@@ -147,7 +161,7 @@ pub fn load_all(dir: &str) -> SqPack {
 }
 
 pub fn load_repo(dir: &str, repo: &str) -> SqPack {
-	let mut sqpack = new(dir);
+	let mut sqpack = SqPack::new(dir);
 	sqpack.index_repo(repo);
 	return sqpack;
 }
