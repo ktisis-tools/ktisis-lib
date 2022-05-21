@@ -21,13 +21,12 @@ impl DatReader {
 			Ok(file) => file
 		};
 		
-		return DatReader {
+		DatReader {
 			file: file
-		};
+		}
 	}
 
 	pub fn read<T: BinRead>(&mut self) -> T {
-		let res: T = self.file.read_le().unwrap();
-		return res;
+		self.file.read_le().unwrap()
 	}
 }

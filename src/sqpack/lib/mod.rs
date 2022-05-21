@@ -39,27 +39,24 @@ pub fn hex_str<T: std::fmt::LowerHex>(args: &[T]) -> String {
 }
 
 pub fn dat_str(cat: u8, ex: u8, chunk: u8, ftype: &str) -> String {
-	return format!("{}.{}.{}", hex_str::<u8>(&[cat, ex, chunk]), "win32", ftype);
+	format!("{}.{}.{}", hex_str::<u8>(&[cat, ex, chunk]), "win32", ftype)
 }
 
 pub fn parse_dat_stem(name: &str) -> [u8; 3] {
 	let split = name.find(".").unwrap();
-
 	let dat = &name[..split];
-	let _plat = &name[split+1..];
-
-	let cat = u8::from_str_radix(&dat[0..2], 16).unwrap();
-	let ex  = u8::from_str_radix(&dat[2..4], 16).unwrap();
-	let chk = u8::from_str_radix(&dat[4..6], 16).unwrap();
-
-	return [cat, ex, chk]; // TODO: platform
+	[
+		u8::from_str_radix(&dat[0..2], 16).unwrap(),
+		u8::from_str_radix(&dat[2..4], 16).unwrap(),
+		u8::from_str_radix(&dat[4..6], 16).unwrap()
+	]
 }
 
 pub fn parse_repo(name: &str) -> u8 {
-	if name == "ffxiv" {
-		return 0;
-	} else if &name[..2] == "ex" {
-		return name[2..].parse::<u8>().unwrap();
+	if name == "ffxiv" { 0 }
+	else if &name[..2] == "ex" {
+		name[2..].parse::<u8>().unwrap()
+	} else {
+		panic!("Invalid repo name: {name}")
 	}
-	panic!("Invalid repo name: {name}");
 }
