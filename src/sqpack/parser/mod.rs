@@ -10,32 +10,24 @@ use binread::{BinRead};
 
 // DatReader
 
-#[derive(Default)]
 pub struct DatReader {
-	file: Option<File>
+	file: File
 }
 
 impl DatReader {
-	pub fn new() -> DatReader {
-		let mut reader = DatReader {
-			..Default::default()
-		};
-		return reader;
-	}
-
 	pub fn open(path: &Path) -> DatReader {
-		let mut reader = DatReader::new();
-
-		reader.file = match File::open(&path) {
+		let file = match File::open(&path) {
 			Err(err) => panic!("failed to open path '{}': {}", path.display(), err),
-			Ok(file) => Some::<File>(file)
+			Ok(file) => file
 		};
 		
-		return reader;
+		return DatReader {
+			file: file
+		};
 	}
 
-	pub fn read<T: BinRead>(&self) -> T {
-		let res: T = self.file.as_ref().unwrap().read_le().unwrap();
+	pub fn read<T: BinRead>(&mut self) -> T {
+		let res: T = self.file.read_le().unwrap();
 		return res;
 	}
 }

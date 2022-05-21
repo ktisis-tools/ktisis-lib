@@ -1,8 +1,11 @@
-pub mod lib;
+mod lib;
 mod parser;
+mod reader;
 
 use parser::DatReader;
 use parser::files::*;
+
+use reader::SqPackRead;
 
 use std::path::Path;
 use std::default::Default;
@@ -26,7 +29,48 @@ pub struct SqPack {
 }
 
 impl SqPack {
-	// File Indexing
+	// Indexing
+
+	pub fn index_repo(&mut self, repo: &str) {
+		let repo_path = Path::new(&self.path).join(repo);
+		assert!(repo_path.exists(), "repo does not exist in path: {repo}");
+
+		let files = repo_path.read_dir();
+		assert!(files.is_ok(), "failed to read repo '{repo}': {}", files.err().unwrap());
+
+		for file in files.expect("read_dir call failed") {
+			if let Ok(file) = file {
+				let path = file.path();
+
+				let ext = path.extension().unwrap();
+				if ext != "index" { continue };
+
+				self.index_file(&path);
+			}
+		}
+	}
+
+	pub fn index_category(&mut self, cat: u8) {
+		let root = Path::new(&self.path);
+
+		// Iterate repos
+		let repos = root.read_dir();
+		for repo in repos.expect("read_dir call failed") {
+			if let Ok(repo) = repo {
+				let path = repo.path();
+				let name = path.file_name().unwrap().to_str().unwrap();
+				let ex = lib::parse_repo(&name);
+
+				// Iterate chunks
+				for chunk in 0..255 {
+					let path = path.join(lib::dat_str(cat, ex, chunk, "index"));
+					if !path.exists() { break; }
+					
+					self.index_file(&path);
+				}
+			}
+		}
+	}
 
 	pub fn index_file(&mut self, path: &Path) {
 		// Parse filename
@@ -51,48 +95,6 @@ impl SqPack {
 		self.index_chunk(chunk);
 	}
 
-	pub fn index_category(&mut self, cat: u8) {
-		let root = Path::new(&self.path);
-
-		// Iterate repos
-		let repos = root.read_dir();
-		for repo in repos.expect("read_dir call failed") {
-			if let Ok(repo) = repo {
-				let path = repo.path();
-				let name = path.file_name().unwrap().to_str().unwrap();
-				let ex = lib::parse_repo(&name);
-				println!("{} {}", name, ex);
-
-				// Iterate chunks
-				for chunk in 0..255 {
-					let path = path.join(lib::dat_str(cat, ex, chunk, "index"));
-					if !path.exists() { break; }
-					
-					self.index_file(&path);
-				}
-			}
-		}
-	}
-
-	pub fn index_repo(&mut self, repo: &str) {
-		let repo_path = Path::new(&self.path).join(repo);
-		assert!(repo_path.exists(), "repo does not exist in path: {repo}");
-
-		let files = repo_path.read_dir();
-		assert!(files.is_ok(), "failed to read repo '{repo}': {}", files.err().unwrap());
-
-		for file in files.expect("read_dir call failed") {
-			if let Ok(file) = file {
-				let path = file.path();
-
-				let ext = path.extension().unwrap();
-				if ext != "index" { continue };
-
-				self.index_file(&path);
-			}
-		}
-	}
-
 	pub fn index_chunk(&mut self, chunk: SqPackChunk) {
 		if !self.chunks.contains_key(&chunk.cat) {
 			self.chunks.insert(
@@ -106,6 +108,10 @@ impl SqPack {
 	}
 
 	// File Fetching
+
+	pub fn open_file(&self, path: &str) {
+
+	}
 
 	pub fn get_file(&self, path: &str) {
 
