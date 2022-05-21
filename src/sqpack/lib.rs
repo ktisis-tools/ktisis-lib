@@ -46,11 +46,11 @@ pub fn parse_dat_stem(name: &str) -> [u8; 3] {
 	let split = name.find(".").unwrap();
 
 	let dat = &name[..split];
-	let plat = &name[split+1..];
+	let _plat = &name[split+1..];
 
 	let cat = u8::from_str_radix(&dat[0..2], 16).unwrap();
 	let ex  = u8::from_str_radix(&dat[2..4], 16).unwrap();
 	let chk = u8::from_str_radix(&dat[4..6], 16).unwrap();
 
-	return [cat, ex, chk]; // TODO: Optimise determining platform
+	return [cat, ex, chk]; // TODO: platform
 }

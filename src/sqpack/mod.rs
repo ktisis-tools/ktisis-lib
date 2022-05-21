@@ -6,14 +6,15 @@ use parser::files::*;
 
 use std::path::Path;
 use std::default::Default;
+use std::collections::HashMap;
 
 // SqPackChunk
 
-#[derive(Default)]
 pub struct SqPackChunk {
 	cat: u8,
 	ex: u8,
-	chunk: u8
+	chunk: u8,
+	index: SqPackIndex
 }
 
 // SqPack
@@ -21,17 +22,11 @@ pub struct SqPackChunk {
 #[derive(Default)]
 pub struct SqPack {
 	path: String,
-	chunks: Vec<SqPackChunk>
+	chunks: HashMap<u8, Vec<SqPackChunk>>
 }
 
 impl SqPack {
 	// File Indexing
-
-	fn index_file(&self, path: &Path) {
-		let stuff = DatReader::open(path).read::<SqPackIndex>();
-		println!("{:?}: {} entries indexed.", path.file_name().unwrap(), stuff.index.data_size / 16);
-	}
-
 	fn index_repo(&mut self, repo: &str) {
 		let repo_path = Path::new(&self.path).join(repo);
 		assert!(repo_path.exists(), "repo does not exist in path: {repo}");
@@ -46,20 +41,38 @@ impl SqPack {
 				let ext = path.extension().expect("index");
 				if ext != "index" { continue };
 
+				// Parse filename
+
 				let stem = path.file_stem().unwrap().to_str().unwrap();
 				let [cat, ex, chk] = lib::parse_dat_stem(stem);
 
-				let index = SqPackChunk {
+				// Index chunk
+
+				let index = DatReader::open(&path).read::<SqPackIndex>();
+				println!("{:?}: {} entries indexed.", path.file_name().unwrap(), index.map.keys().len());
+
+				let chunk = SqPackChunk {
 					cat: cat,
 					ex: ex,
 					chunk: chk,
-					..Default::default()
+					index: index
 				};
-				self.index_file(&path);
-				self.chunks.push(index);
+
+				// Push to category map
+
+				if !self.chunks.contains_key(&cat) {
+					self.chunks.insert(
+						cat,
+						Vec::<SqPackChunk>::new()
+					);
+				}
+				let cat_chunks = self.chunks.get_mut(&cat).unwrap();
+				cat_chunks.push(chunk);
 			}
 		}
 	}
+
+
 
 	// File Fetching
 
@@ -70,17 +83,34 @@ impl SqPack {
 
 // Public methods
 
-pub fn load_repo(path: &str, repo: &str) -> SqPack {
-	assert!(Path::new(path).exists(), "sqpack path does not exist: {path}");
+pub fn new(dir: &str) -> SqPack {
+	assert!(Path::new(dir).exists(), "sqpack path does not exist: {dir}");
 
 	let mut sqpack = SqPack {
-		path: path.to_string(),
+		path: dir.to_string(),
 		..Default::default()
 	};
-	sqpack.index_repo(repo);
 	return sqpack;
 }
 
-pub fn load_repos(path: &str) {
-	
+pub fn load_all(dir: &str) -> SqPack {
+	let mut sqpack = new(dir);
+
+	let path = Path::new(dir);
+
+	let files = path.read_dir();
+	for file in files.expect("read_dir call failed") {
+		if let Ok(file) = file {
+			let repo = file.path();
+			sqpack.index_repo(repo.file_name().unwrap().to_str().unwrap());
+		}
+	}
+
+	return sqpack;
+}
+
+pub fn load_repo(dir: &str, repo: &str) -> SqPack {
+	let mut sqpack = new(dir);
+	sqpack.index_repo(repo);
+	return sqpack;
 }

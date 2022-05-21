@@ -3,10 +3,10 @@ use crate::sqpack::lib::hex_str;
 use super::headers::*;
 
 use std::fmt::Debug;
-use std::collections::HashMap;
-use std::io::{Read, Seek};
-
 use std::io::SeekFrom::*;
+use std::io::{Read, Seek};
+use std::collections::HashMap;
+
 use binread::{BinRead, BinResult, ReadOptions, BinReaderExt};
 
 // SqPackIndex
