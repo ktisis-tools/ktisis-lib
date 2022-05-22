@@ -1,15 +1,13 @@
 // debugging file.
 
 pub mod sqpack;
+pub mod lib;
 
 use sqpack::SqPack;
 
 use std::fs;
-use std::io::Write;
 use std::{thread, time};
 use std::time::{SystemTime, UNIX_EPOCH};
-
-use sqpack::reader::chunk::ChunkReader;
 
 const PATH: &str = "D:/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn/game/sqpack/";
 

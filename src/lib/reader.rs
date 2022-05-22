@@ -1,11 +1,7 @@
-pub mod headers;
-pub mod files;
-
 use std::fs::File;
 use std::path::Path;
-use std::default::Default;
 use std::io::SeekFrom::*;
-use std::io::{Read, Seek};
+use std::io::Seek;
 
 use binread::prelude::*;
 use binread::{BinRead};

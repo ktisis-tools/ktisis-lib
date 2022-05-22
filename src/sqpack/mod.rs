@@ -1,17 +1,11 @@
-mod lib;
-mod parser;
-pub mod reader;
+mod files;
 
-use parser::DatReader;
-use parser::files::{SqPackFile, SqPackIndex, HashTableEntry};
-
-use lib::crc32;
-
-use reader::chunk::ChunkReader;
+use crate::lib;
+use crate::lib::reader::DatReader;
+use files::{SqPackFile, SqPackIndex, HashTableEntry};
 
 use std::fs::File;
 use std::path::Path;
-use std::cell::RefCell;
 use std::default::Default;
 use std::collections::HashMap;
 
@@ -145,15 +139,16 @@ impl SqPack {
 
 		let file = DatReader::open(&root.join(loc)).offset(find.entry.offset as u64).read::<SqPackFile>();
 
-		println!("expected base_offset: {}", find.entry.offset + file.finfo.size);
-
 		return file;
-	} 
+	}
+
+	////* Sheets *////
+
+	/*pub fn find_sheet(&self, sheet: &str) -> Option<SheetFindResult> {}*/
 }
 
 // FileFindResult
 
-#[derive(Debug)]
 pub struct FileFindResult<'a> {
 	chunk: &'a SqPackChunk,
 	entry: &'a HashTableEntry
@@ -167,7 +162,6 @@ impl FileFindResult<'_> {
 
 // SqPackChunk
 
-#[derive(Debug)]
 pub struct SqPackChunk {
 	cat: u8,
 	ex: u8,

@@ -1,4 +1,5 @@
 pub mod crc32;
+pub mod reader;
 
 use phf::phf_map;
 
@@ -21,14 +22,6 @@ pub static CATEGORY: phf::Map<&'static str, u8> = phf_map! {
 	"sqpack_test"   => 18,
 	"debug"			=> 19
 };
-
-// Platform Enums
-
-enum Platform {
-	Win32,
-	Ps3,
-	Ps4
-}
 
 // Methods
 

@@ -1,22 +1,19 @@
-use crate::sqpack::lib::hex_str;
+pub mod headers;
 
-use super::headers::*;
+use headers::*;
 
 use std::fmt::Debug;
-use std::mem::size_of;
-use std::str::from_utf8;
 use std::io::SeekFrom::*;
 use std::io::{Read, Seek};
 use std::collections::HashMap;
 
 use inflate::inflate_bytes;
 
-use binread::{BinRead, BinResult, ReadOptions, BinReaderExt, FilePtr};
+use binread::{BinRead, BinResult, ReadOptions, BinReaderExt};
 
 // SqPackIndex
 
 #[derive(BinRead)]
-#[derive(Debug)]
 pub struct SqPackIndex {
 	pub header: SqPackHeader,
 	#[br(seek_before = Start(header.size.into()))]
@@ -37,7 +34,7 @@ fn index_entry<R: Read + Seek>(reader: &mut R, ro: &ReadOptions, _: ())
 -> BinResult<HashMap<u64, HashTableEntry>> {
 	let mut map = HashMap::new();
 
-	let mut ct = ro.count.unwrap();
+	let ct = ro.count.unwrap();
 	for _i in 0..ct {
 		let hash: u64 = reader.read_le().unwrap();
 		let data: u32 = reader.read_le().unwrap();
@@ -95,7 +92,7 @@ pub struct SqPackFile {
 	pub content: Vec<u8>
 }
 
-fn read_blocks<R: Read + Seek>(reader: &mut R, ro: &ReadOptions, args: (&u64, &SqPackFileInfo, &Vec<SqPackBlockInfo>,))
+fn read_blocks<R: Read + Seek>(reader: &mut R, _ro: &ReadOptions, args: (&u64, &SqPackFileInfo, &Vec<SqPackBlockInfo>,))
 -> BinResult<Vec<u8>> {
 	let offset = args.0;
 	let finfo = args.1;
@@ -121,7 +118,7 @@ fn read_blocks<R: Read + Seek>(reader: &mut R, ro: &ReadOptions, args: (&u64, &S
 
 // Save Offset
 
-fn store_offset<R: Read + Seek>(reader: &mut R, ro: &ReadOptions, _: ())
+fn store_offset<R: Read + Seek>(reader: &mut R, _ro: &ReadOptions, _: ())
 -> BinResult<u64> {
 	Ok(reader.seek(Current(0)).unwrap())
 }
