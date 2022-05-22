@@ -11,6 +11,7 @@ use reader::chunk::ChunkReader;
 
 use std::fs::File;
 use std::path::Path;
+use std::cell::RefCell;
 use std::default::Default;
 use std::collections::HashMap;
 
@@ -115,7 +116,7 @@ impl SqPack {
 
 	////* File Handling *////
 
-	pub fn find_file(&self, path: &str) -> Option<&HashTableEntry> {
+	pub fn find_file(&self, path: &str) -> Option<FileFindResult> {
 		// Category
 		let first = path.find("/").unwrap();
 		let cat = category(&path[..first]);
@@ -124,7 +125,11 @@ impl SqPack {
 		// Search chunks
 		for (_cat, chunk) in &self.chunks[&cat] {
 			if chunk.index.map.contains_key(&hash) {
-				return chunk.index.map.get(&hash);
+				let res = FileFindResult {
+					chunk: chunk,
+					entry: chunk.index.map.get(&hash).unwrap()
+				};
+				return Option::Some::<FileFindResult>(res);
 			} else {
 				continue;
 			}
@@ -133,8 +138,21 @@ impl SqPack {
 	}
 }
 
+#[derive(Debug)]
+pub struct FileFindResult<'a> {
+	chunk: &'a SqPackChunk,
+	entry: &'a HashTableEntry
+}
+
+impl FileFindResult<'_> {
+	pub fn resolve(&self) -> String {
+		self.chunk.dat_path(format!("dat{}", self.entry.file_id).as_str())
+	}
+}
+
 // SqPackChunk
 
+#[derive(Debug)]
 pub struct SqPackChunk {
 	cat: u8,
 	ex: u8,

@@ -4,6 +4,7 @@ use std::io::SeekFrom::*;
 // SqPackheader
 
 #[derive(BinRead)]
+#[derive(Debug)]
 pub struct SqPackHeader {
 	#[br(seek_before = Start(8))]
 	pub platform: u32,
@@ -15,6 +16,7 @@ pub struct SqPackHeader {
 // IndexHeader
 
 #[derive(BinRead)]
+#[derive(Debug)]
 pub struct IndexHeader {
 	pub size: u32,
 	pub _type: u32,

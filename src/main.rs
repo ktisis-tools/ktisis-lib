@@ -21,8 +21,8 @@ fn main() {
 	//sqpack.index_category(sqpack::category("exd"));
 	sqpack.index_category(sqpack::category("chara"));
 
-	let find = sqpack.find_file("chara/xls/charamake/human.cmp");
-	println!("{:?}", find.unwrap());
+	let find = sqpack.find_file("chara/xls/charamake/human.cmp").expect("not found");
+	println!("{:?}", find.resolve());
 	//sqpack.index_category(sqpack::category("bg"));
 
 	let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();

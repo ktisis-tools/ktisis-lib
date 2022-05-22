@@ -12,6 +12,7 @@ use binread::{BinRead, BinResult, ReadOptions, BinReaderExt};
 // SqPackIndex
 
 #[derive(BinRead)]
+#[derive(Debug)]
 pub struct SqPackIndex {
 	pub header: SqPackHeader,
 	#[br(seek_before = Start(header.size.into()))]
