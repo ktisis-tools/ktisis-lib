@@ -64,10 +64,11 @@ pub fn parse_repo(name: &str) -> u8 {
 }
 
 pub fn hash_path(path: &str) -> u64 {
-	let last = path.rfind("/").unwrap();
+	let lower: &str = &path.to_lowercase();
+	let last = lower.rfind("/").unwrap();
 
-	let dir = crc32::hash(&path[..last]) as u64;
-	let file = crc32::hash(&path[last+1..]) as u64;
+	let dir = crc32::hash(&lower[..last]) as u64;
+	let file = crc32::hash(&lower[last+1..]) as u64;
 
 	return ((dir << 32) | file).into();
 }

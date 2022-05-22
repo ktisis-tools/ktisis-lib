@@ -4,6 +4,8 @@ pub mod files;
 use std::fs::File;
 use std::path::Path;
 use std::default::Default;
+use std::io::SeekFrom::*;
+use std::io::{Read, Seek};
 
 use binread::prelude::*;
 use binread::{BinRead};
@@ -24,6 +26,11 @@ impl DatReader {
 		DatReader {
 			file: file
 		}
+	}
+
+	pub fn offset(mut self, offset: u64) -> DatReader {
+		self.file.seek(Start(offset)).expect("seek failed");
+		return self;
 	}
 
 	pub fn read<T: BinRead>(&mut self) -> T {

@@ -3,7 +3,7 @@ mod parser;
 pub mod reader;
 
 use parser::DatReader;
-use parser::files::{SqPackIndex, HashTableEntry};
+use parser::files::{SqPackFile, SqPackIndex, HashTableEntry};
 
 use lib::crc32;
 
@@ -84,7 +84,7 @@ impl SqPack {
 		// Index chunk
 
 		let index = DatReader::open(&path).read::<SqPackIndex>();
-		//println!("{:?}: {} entries indexed.", path.file_name().unwrap(), index.map.keys().len());
+		println!("{:?}: {} entries indexed.", path.file_name().unwrap(), index.map.keys().len());
 
 		let chunk = SqPackChunk {
 			cat: cat,
@@ -116,12 +116,12 @@ impl SqPack {
 
 	////* File Handling *////
 
-	pub fn find_file(&self, path: &str) -> Option<FileFindResult> {
+	pub fn find_file(&self, file: &str) -> Option<FileFindResult> {
 		// Category
-		let first = path.find("/").unwrap();
-		let cat = category(&path[..first]);
+		let first = file.find("/").unwrap();
+		let cat = category(&file[..first]);
 		// Hash
-		let hash = lib::hash_path(path);
+		let hash = lib::hash_path(file);
 		// Search chunks
 		for (_cat, chunk) in &self.chunks[&cat] {
 			if chunk.index.map.contains_key(&hash) {
@@ -136,7 +136,22 @@ impl SqPack {
 		}
 		return None;
 	}
+
+	pub fn get_file(&self, file: &str) -> SqPackFile {
+		let find = self.find_file(file).expect(format!("file not found: {file}").as_str());
+
+		let root = Path::new(&self.path);
+		let loc = find.resolve();
+
+		let file = DatReader::open(&root.join(loc)).offset(find.entry.offset as u64).read::<SqPackFile>();
+
+		println!("expected base_offset: {}", find.entry.offset + file.finfo.size);
+
+		return file;
+	} 
 }
+
+// FileFindResult
 
 #[derive(Debug)]
 pub struct FileFindResult<'a> {
