@@ -1,8 +1,8 @@
 [package]
-name = "ktisis-reader"
+name = "ktisis"
 version = "0.1.0"
 authors = ["chirp (github.com/chrpy)"]
-repository = "https://github.com/ktisis-tools/ktisis-reader"
+repository = "https://github.com/ktisis-tools/ktisis"
 edition = "2021"
 
 [dependencies]
