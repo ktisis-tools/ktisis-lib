@@ -1,8 +1,7 @@
-pub mod headers;
-
-use headers::*;
+use super::headers::*;
 
 use std::fmt::Debug;
+use std::io::Cursor;
 use std::io::SeekFrom::*;
 use std::io::{Read, Seek};
 use std::collections::HashMap;
@@ -90,6 +89,12 @@ pub struct SqPackFile {
 	blocks: Vec<SqPackBlockInfo>,
 	#[br(parse_with = read_blocks, args(&_offset, &finfo, &blocks))]
 	pub content: Vec<u8>
+}
+
+impl SqPackFile {
+	pub fn parse<T: BinRead>(&self) -> T {
+		Cursor::new(&self.content).read_be().unwrap()
+	}
 }
 
 fn read_blocks<R: Read + Seek>(reader: &mut R, _ro: &ReadOptions, args: (&u64, &SqPackFileInfo, &Vec<SqPackBlockInfo>,))

@@ -1,4 +1,5 @@
 mod files;
+mod headers;
 
 use crate::lib;
 use crate::lib::reader::DatReader;
@@ -143,7 +144,9 @@ impl SqPack {
 	////* Sheets *////
 
 	pub fn find_sheet(&self, sheet: &str) {
+		let header = self.get_file(format!("exd/{sheet}.exh").as_str());
 
+		println!("{:?}", header.content);
 	}
 }
 

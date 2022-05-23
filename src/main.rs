@@ -22,8 +22,10 @@ fn main() {
 
 	//sqpack.get_file("exd/race.exh");
 
-	let file = sqpack.get_file("exd/root.exl");
-	fs::write("./result.txt", file.content).expect("oh no");
+	//let file = sqpack.get_file("exd/root.exl");
+	//fs::write("./result.txt", file.content).expect("oh no");
+
+	sqpack.find_sheet("Race");
 
 	let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 

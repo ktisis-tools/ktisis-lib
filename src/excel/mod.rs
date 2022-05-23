@@ -1,11 +1,2 @@
-pub mod parser;
-
-// SheetParser
-
-struct SheetParser {
-
-}
-
-impl SheetParser {
-
-}
+pub mod files;
+pub mod structs;
