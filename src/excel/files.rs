@@ -30,3 +30,14 @@ pub struct ExhHeader {
 	#[br(count = language_count, little)]
 	pub languages: Vec<u16>
 }
+
+// ExdData (.exd) file
+
+#[derive(BinRead)]
+#[derive(Debug)]
+pub struct ExdData {
+	#[br(seek_before = Current(4))]
+	header: ExcelDataHeader,
+	#[br(seek_before = Current(20), count = header.index_size / 8)]
+	row_offsets: Vec<ExcelRowOffset>
+}

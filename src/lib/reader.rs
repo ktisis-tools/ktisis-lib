@@ -25,9 +25,8 @@ impl DatReader {
 		}
 	}
 
-	pub fn offset(mut self, offset: u64) -> DatReader {
+	pub fn offset(&mut self, offset: u64) {
 		self.reader.seek(Start(offset)).expect("seek failed");
-		return self;
 	}
 
 	pub fn read<T: BinRead>(&mut self) -> T {
