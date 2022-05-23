@@ -2,6 +2,7 @@ mod files;
 
 use crate::lib;
 use crate::lib::reader::DatReader;
+use crate::excel::*;
 use files::{SqPackFile, SqPackIndex, HashTableEntry};
 
 use std::fs::File;
@@ -84,8 +85,7 @@ impl SqPack {
 			cat: cat,
 			ex: ex,
 			chunk: chk,
-			index: index,
-			stream: None
+			index: index
 		};
 
 		// Push to category map
@@ -137,21 +137,21 @@ impl SqPack {
 		let root = Path::new(&self.path);
 		let loc = find.resolve();
 
-		let file = DatReader::open(&root.join(loc)).offset(find.entry.offset as u64).read::<SqPackFile>();
-
-		return file;
+		DatReader::open(&root.join(loc)).offset(find.entry.offset as u64).read::<SqPackFile>()
 	}
 
 	////* Sheets *////
 
-	/*pub fn find_sheet(&self, sheet: &str) -> Option<SheetFindResult> {}*/
+	pub fn find_sheet(&self, sheet: &str) {
+
+	}
 }
 
 // FileFindResult
 
 pub struct FileFindResult<'a> {
-	chunk: &'a SqPackChunk,
-	entry: &'a HashTableEntry
+	pub chunk: &'a SqPackChunk,
+	pub entry: &'a HashTableEntry
 }
 
 impl FileFindResult<'_> {
@@ -160,14 +160,23 @@ impl FileFindResult<'_> {
 	}
 }
 
+// SheetFindResult
+
+pub struct SheetFindResult {
+
+}
+
+impl SheetFindResult {
+
+}
+
 // SqPackChunk
 
 pub struct SqPackChunk {
 	cat: u8,
 	ex: u8,
 	chunk: u8,
-	index: SqPackIndex,
-	stream: Option<File>
+	index: SqPackIndex
 }
 
 impl SqPackChunk {
@@ -176,8 +185,7 @@ impl SqPackChunk {
 			cat: cat,
 			ex: ex,
 			chunk: chunk,
-			index: index,
-			stream: None
+			index: index
 		}
 	}
 

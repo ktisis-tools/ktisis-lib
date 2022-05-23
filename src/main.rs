@@ -1,7 +1,8 @@
 // debugging file.
 
-pub mod sqpack;
 pub mod lib;
+pub mod sqpack;
+pub mod excel;
 
 use sqpack::SqPack;
 
