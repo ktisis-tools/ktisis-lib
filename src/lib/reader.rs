@@ -1,7 +1,10 @@
-use std::fs::File;
+use std::fs::read;
+
 use std::path::Path;
-use std::io::SeekFrom::*;
+use std::fs::File;
 use std::io::Seek;
+use std::io::Cursor;
+use std::io::SeekFrom::*;
 
 use binread::prelude::*;
 use binread::{BinRead};
@@ -9,27 +12,26 @@ use binread::{BinRead};
 // DatReader
 
 pub struct DatReader {
-	file: File
+	reader: Cursor<Vec<u8>>
 }
 
 impl DatReader {
 	pub fn open(path: &Path) -> DatReader {
-		let file = match File::open(&path) {
-			Err(err) => panic!("failed to open path '{}': {}", path.display(), err),
-			Ok(file) => file
-		};
-		
+		let reader = Cursor::new(
+			read(path).unwrap()
+		);
+
 		DatReader {
-			file: file
+			reader: reader
 		}
 	}
 
 	pub fn offset(mut self, offset: u64) -> DatReader {
-		self.file.seek(Start(offset)).expect("seek failed");
+		self.reader.seek(Start(offset)).expect("seek failed");
 		return self;
 	}
 
 	pub fn read<T: BinRead>(&mut self) -> T {
-		self.file.read_le().unwrap()
+		self.reader.read_le().unwrap()
 	}
 }

@@ -149,6 +149,10 @@ impl SqPack {
 		DatReader::open(&root.join(loc)).offset(find.entry.offset as u64).read::<SqPackFile>()
 	}
 
+	pub fn get_files(&self, file: Vec<String>) {
+		
+	}
+
 	////* Sheets *////
 
 	pub fn get_sheet_header(&self, sheet: &str) -> ExhHeader {
