@@ -1,10 +1,9 @@
 use std::fs::read;
 
-use std::path::Path;
-use std::fs::File;
 use std::io::Seek;
 use std::io::Cursor;
 use std::io::SeekFrom::*;
+use std::path::Path;
 
 use binread::prelude::*;
 use binread::{BinRead};

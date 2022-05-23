@@ -4,8 +4,6 @@ pub mod lib;
 pub mod sqpack;
 pub mod excel;
 
-use sqpack::SqPack;
-
 use std::fs;
 use std::{thread, time};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -31,5 +29,5 @@ fn main() {
 
 	println!("Execution time: {}ms", end - start);
 
-	//thread::sleep(time::Duration::from_millis(60000));
+	thread::sleep(time::Duration::from_millis(60000));
 }
