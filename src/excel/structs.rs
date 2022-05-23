@@ -5,13 +5,13 @@ use binread::BinRead;
 #[derive(BinRead)]
 #[derive(Debug)]
 pub struct ExcelColumnDefinition {
-	data_type: u16,
-	offset: u16
+	pub data_type: u16,
+	pub offset: u16
 }
 
 #[derive(BinRead)]
 #[derive(Debug)]
 pub struct ExcelPageDefinition {
-	start_id: u32,
-	row_count: u32
+	pub start_id: u32,
+	pub row_count: u32
 }

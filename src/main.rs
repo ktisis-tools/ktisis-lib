@@ -25,7 +25,7 @@ fn main() {
 	//let file = sqpack.get_file("exd/root.exl");
 	//fs::write("./result.txt", file.content).expect("oh no");
 
-	sqpack.find_sheet("Race");
+	sqpack.get_sheet("custom/000/CmnBhtEnterLv020St0003_00013");
 
 	let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 

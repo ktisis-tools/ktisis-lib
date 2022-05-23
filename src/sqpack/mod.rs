@@ -4,21 +4,20 @@ mod headers;
 use crate::lib;
 use crate::lib::reader::DatReader;
 
-use crate::excel::*;
+use crate::excel::{Language};
 use crate::excel::files::*;
 
 use files::{SqPackFile, SqPackIndex, HashTableEntry};
 
-use std::fs::File;
 use std::path::Path;
-use std::default::Default;
 use std::collections::HashMap;
 
 // SqPack
 
 pub struct SqPack {
 	path: String,
-	chunks: HashMap<u8, HashMap<u32, SqPackChunk>> // category: [chunks]
+	chunks: HashMap<u8, HashMap<u32, SqPackChunk>>, // category: [chunks]
+	language: Language // default
 }
 
 impl SqPack {
@@ -27,8 +26,14 @@ impl SqPack {
 
 		SqPack {
 			path: path.to_string(),
-			chunks: HashMap::<u8, HashMap<u32, SqPackChunk>>::new()
+			chunks: HashMap::<u8, HashMap<u32, SqPackChunk>>::new(),
+			language: Language::English
 		}
+	}
+
+	pub fn set_language(mut self, language: Language) -> Self {
+		self.language = language;
+		self
 	}
 	
 	////* Indexing *////
@@ -135,8 +140,8 @@ impl SqPack {
 		return None;
 	}
 
-	pub fn get_file(&self, file: &str) -> SqPackFile {
-		let find = self.find_file(file).expect(format!("file not found: {file}").as_str());
+	pub fn get_file(&self, file: String) -> SqPackFile {
+		let find = self.find_file(&file).expect(format!("file not found: {file}").as_str());
 
 		let root = Path::new(&self.path);
 		let loc = find.resolve();
@@ -146,10 +151,28 @@ impl SqPack {
 
 	////* Sheets *////
 
-	pub fn find_sheet(&self, sheet: &str) {
-		let header = self.get_file(format!("exd/{sheet}.exh").as_str()).parse::<ExhHeader>();
+	pub fn get_sheet_header(&self, sheet: &str) -> ExhHeader {
+		self.get_file(format!("exd/{sheet}.exh")).parse::<ExhHeader>()
+	}
+
+	pub fn get_sheet(&self, sheet: &str) {
+		let header = self.get_sheet_header(&sheet);
 
 		println!("{:#?}", header);
+
+		let language = if header.languages.contains(&(self.language as u16)) {
+			self.language
+		} else {
+			Language::from_u16(header.languages[0])
+		};
+
+		for page in header.pages {
+			let _path = format!("exd/{sheet}_{}{}.exd", page.start_id, language.suffix());
+			let f = self.find_file(
+				_path.as_str()
+			).unwrap();
+			//println!("{} {} {} {}", _path, f.chunk.hash(), page.start_id, f.entry.file_id);
+		}
 	}
 }
 
@@ -164,16 +187,6 @@ impl FileFindResult<'_> {
 	pub fn resolve(&self) -> String {
 		self.chunk.dat_path(format!("dat{}", self.entry.file_id).as_str())
 	}
-}
-
-// SheetFindResult
-
-pub struct SheetFindResult {
-
-}
-
-impl SheetFindResult {
-
 }
 
 // SqPackChunk

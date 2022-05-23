@@ -1,9 +1,7 @@
 use super::structs::*;
 
-use std::io::{Read, Seek};
+use binread::BinRead;
 use std::io::SeekFrom::*;
-
-use binread::{BinRead, BinReaderExt, BinResult, ReadOptions};
 
 // ExhHeader (.exh) file
 
@@ -11,24 +9,24 @@ use binread::{BinRead, BinReaderExt, BinResult, ReadOptions};
 #[derive(Debug)]
 pub struct ExhHeader {
 	#[br(seek_before = Current(4))]
-	version: u16,
-	data_offset: u16,
-	column_count: u16,
-	page_count: u16,
-	language_count: u16,
+	pub version: u16,
+	pub data_offset: u16,
+	pub column_count: u16,
+	pub page_count: u16,
+	pub language_count: u16,
 	
 	#[br(seek_before = Current(3))]
-	variant: u8,
+	pub variant: u8,
 
 	#[br(seek_before = Current(2))]
-	row_count: u32,
+	pub row_count: u32,
 
 	#[br(seek_before = Current(8), count = column_count)]
-	columns: Vec<ExcelColumnDefinition>,
+	pub columns: Vec<ExcelColumnDefinition>,
 
 	#[br(count = page_count)]
-	pages: Vec<ExcelPageDefinition>,
+	pub pages: Vec<ExcelPageDefinition>,
 
 	#[br(count = language_count, little)]
-	languages: Vec<u16>
+	pub languages: Vec<u16>
 }
