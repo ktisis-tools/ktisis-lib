@@ -3,7 +3,10 @@ mod headers;
 
 use crate::lib;
 use crate::lib::reader::DatReader;
+
 use crate::excel::*;
+use crate::excel::files::*;
+
 use files::{SqPackFile, SqPackIndex, HashTableEntry};
 
 use std::fs::File;
@@ -144,9 +147,9 @@ impl SqPack {
 	////* Sheets *////
 
 	pub fn find_sheet(&self, sheet: &str) {
-		let header = self.get_file(format!("exd/{sheet}.exh").as_str());
+		let header = self.get_file(format!("exd/{sheet}.exh").as_str()).parse::<ExhHeader>();
 
-		println!("{:?}", header.content);
+		println!("{:#?}", header);
 	}
 }
 
