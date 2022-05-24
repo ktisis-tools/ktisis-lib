@@ -41,3 +41,6 @@ pub struct ExdData {
 	#[br(seek_before = Current(20), count = header.index_size / 8)]
 	row_offsets: Vec<ExcelRowOffset>
 }
+
+// ExlList (.exl) file
+// TODO

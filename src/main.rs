@@ -15,7 +15,7 @@ fn main() {
 
 	//let repo = sqpack::load_all(PATH);
 
-	let mut sqpack = sqpack::new(PATH);
+	let mut sqpack = sqpack::new(PATH).unwrap();
 	sqpack.index_category(sqpack::category("exd"));
 
 	sqpack.get_sheet("Race");

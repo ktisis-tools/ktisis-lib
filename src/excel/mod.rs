@@ -1,5 +1,6 @@
 pub mod files;
 pub mod structs;
+pub mod sheet;
 
 use phf::phf_map;
 

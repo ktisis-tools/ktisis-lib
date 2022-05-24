@@ -1,16 +1,18 @@
-mod files;
+pub mod files;
 mod headers;
 
 use crate::lib;
 use crate::lib::reader::DatReader;
 
 use crate::excel::{Language};
+use crate::excel::sheet::*;
 use crate::excel::files::*;
 
 use files::{SqPackFile, SqPackIndex, HashTableEntry};
 
 use std::path::Path;
 use std::collections::HashMap;
+use std::io::{Error, ErrorKind};
 
 // SqPack
 
@@ -21,13 +23,15 @@ pub struct SqPack {
 }
 
 impl SqPack {
-	pub fn new(path: &str) -> SqPack {
-		assert!(Path::new(path).exists(), "sqpack path does not exist: {path}");
-
-		SqPack {
-			path: path.to_string(),
-			chunks: HashMap::<u8, HashMap<u32, SqPackChunk>>::new(),
-			language: Language::English
+	pub fn new(path: &str) -> Result<SqPack, Error> {
+		if Path::new(path).exists() {
+			Ok(SqPack {
+				path: path.to_string(),
+				chunks: HashMap::<u8, HashMap<u32, SqPackChunk>>::new(),
+				language: Language::English
+			})
+		} else {
+			Err(Error::from(ErrorKind::NotFound))
 		}
 	}
 
@@ -119,12 +123,14 @@ impl SqPack {
 
 	////* File Handling *////
 
-	pub fn find_file(&self, file: String) -> Option<FileFindResult> {
+	pub fn find_file(&self, file: String) -> Result<FileFindResult, Error> {
 		// Category
 		let first = file.find("/").unwrap();
 		let cat = category(&file[..first]);
+
 		// Hash
 		let hash = lib::hash_path(&file);
+
 		// Search chunks
 		for (_cat, chunk) in &self.chunks[&cat] {
 			if chunk.index.map.contains_key(&hash) {
@@ -132,36 +138,43 @@ impl SqPack {
 					chunk: chunk,
 					entry: chunk.index.map.get(&hash).unwrap()
 				};
-				return Option::Some::<FileFindResult>(res);
+				return Ok(res);
 			} else {
 				continue;
 			}
 		}
-		return None;
+
+		Err(Error::from(ErrorKind::NotFound))
 	}
 
-	pub fn get_file(&self, file: String) -> SqPackFile {
-		let find = self.find_file(file).expect("file not found");
+	pub fn get_file(&self, file: String) -> Result<SqPackFile, Error> {
+		let find = self.find_file(file)?;
+
 		let mut reader = DatReader::open(
 			&Path::new(&self.path).join(find.resolve())
 		);
 		reader.offset(find.entry.offset as u64);
-		reader.read::<SqPackFile>()
+		Ok(reader.read::<SqPackFile>())
 	}
 
 	////* Sheets *////
 
-	pub fn get_sheet_header(&self, sheet: &str) -> ExhHeader {
-		self.get_file(format!("exd/{sheet}.exh")).parse::<ExhHeader>()
+	pub fn get_sheet_header(&self, sheet: &str) -> Result<ExhHeader, Error> {
+		let file = self.get_file(format!("exd/{sheet}.exh"))?;
+		Ok(file.parse::<ExhHeader>())
 	}
 
-	pub fn get_sheet(&self, sheet: &str) {
-		let find = self.find_file(format!("exd/{sheet}.exh")).expect("sheet not found");
+	pub fn get_sheet(&self, name: &str) -> Result<ExcelSheet, Error> {
+		let find = self.find_file(format!("exd/{name}.exh"))?;
+
+		// Open file reader for exd chunk
 
 		let mut reader = DatReader::open(
 			&Path::new(&self.path).join(find.resolve())
 		);
 		reader.offset(find.entry.offset as u64);
+
+		// Read Header
 
 		let header = reader.read::<SqPackFile>().parse::<ExhHeader>();
 
@@ -173,24 +186,32 @@ impl SqPack {
 			Language::from_u16(header.languages[0])
 		};
 
-		for page_def in header.pages {
-			let path = format!("exd/{sheet}_{}{}.exd", page_def.start_id, language.suffix());
+		// Construct Sheet
+
+		let mut sheet = ExcelSheet::new(
+			header,
+			language
+		);
+
+		// Read Pages
+
+		for page_def in &sheet.header.pages {
+			let path = format!("exd/{name}_{}{}.exd", page_def.start_id, language.suffix());
 			let hash = lib::hash_path(&path);
+
+			println!("{:#?}", page_def);
 
 			let entry = find.chunk.index.map.get(&hash).unwrap();
 			reader.offset(entry.offset as u64);
-			
-			let parse = reader.read::<SqPackFile>().parse::<ExdData>();
-			println!("{:#?}", parse);
+				
+			let file = reader.read::<SqPackFile>();
+			let data = file.parse::<ExdData>();
+
+			let page = ExcelPage::new(file, data, page_def);
+			sheet.pages.push(page);
 		}
 
-		/*
-			Notes for where I left off before bed.
-			ExdData parsing - (excel/mod.rs, https://xiv.dev)
-			- ExcelRowOffsets (ref: ExcelPage.py:48, ExcelRow.py:29)
-				- check: are these sequential? otherwise custom parser needed.
-			remember to take adhd meds
-		*/
+		Ok(sheet)
 	}
 }
 
@@ -249,12 +270,12 @@ impl SqPackChunk {
 
 // Global
 
-pub fn new(dir: &str) -> SqPack {
+pub fn new(dir: &str) -> Result<SqPack, Error> {
 	SqPack::new(dir)
 }
 
-pub fn load_all(dir: &str) -> SqPack {
-	let mut sqpack = new(dir);
+pub fn load_all(dir: &str) -> Result<SqPack, Error> {
+	let mut sqpack = new(dir)?;
 
 	let path = Path::new(dir);
 
@@ -266,13 +287,13 @@ pub fn load_all(dir: &str) -> SqPack {
 		}
 	}
 
-	return sqpack;
+	Ok(sqpack)
 }
 
-pub fn load_repo(dir: &str, repo: &str) -> SqPack {
-	let mut sqpack = new(dir);
+pub fn load_repo(dir: &str, repo: &str) -> Result<SqPack, Error> {
+	let mut sqpack = new(dir)?;
 	sqpack.index_repo(repo);
-	return sqpack;
+	Ok(sqpack)
 }
 
 // Category

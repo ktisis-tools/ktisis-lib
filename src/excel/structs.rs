@@ -33,3 +33,10 @@ pub struct ExcelRowOffset {
 	pub row_id: u32,
 	pub offset: u32
 }
+
+// ExcelRow
+
+#[derive(Debug)]
+pub struct ExcelRow {
+
+}
