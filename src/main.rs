@@ -18,7 +18,8 @@ fn main() {
 	let mut sqpack = sqpack::new(PATH).unwrap();
 	sqpack.index_category(sqpack::category("exd"));
 
-	sqpack.get_sheet("Race");
+	let shit = sqpack.get_sheet("Item").expect("oop");
+	shit.get_row(9800);
 
 	let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 

@@ -1,7 +1,11 @@
 use super::structs::*;
 
-use binread::BinRead;
+use std::collections::HashMap;
+
+use std::io::{Read, Seek};
 use std::io::SeekFrom::*;
+
+use binread::{BinRead, BinResult, BinReaderExt, ReadOptions};
 
 // ExhHeader (.exh) file
 
@@ -37,10 +41,29 @@ pub struct ExhHeader {
 #[derive(Debug)]
 pub struct ExdData {
 	#[br(seek_before = Current(4))]
-	header: ExcelDataHeader,
+	pub header: ExcelDataHeader,
 	#[br(seek_before = Current(20), count = header.index_size / 8)]
-	row_offsets: Vec<ExcelRowOffset>
+	pub row_offsets: Vec<ExcelRowOffset>
 }
+
+/*	// oops, got fucked by 1-indexed sheets
+
+fn map_rows<R: Read + Seek>(reader: &mut R, ro: &ReadOptions, args: ())
+-> BinResult<HashMap<u32, ExcelRowOffset>> {
+	let mut map = HashMap::<u32, ExcelRowOffset>::new();
+
+	let ct: usize = ro.count.unwrap();
+	for i in 0..ct {
+		let row: ExcelRowOffset = reader.read_be().unwrap();
+		map.insert(
+			row.row_id,
+			row
+		);
+	}
+
+	Ok(map)
+}
+*/
 
 // ExlList (.exl) file
 // TODO

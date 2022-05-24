@@ -90,8 +90,12 @@ pub struct SqPackFile {
 }
 
 impl SqPackFile {
+	pub fn reader(&self) -> Cursor<&Vec<u8>> {
+		Cursor::new(&self.content)
+	}
+
 	pub fn parse<T: BinRead>(&self) -> T {
-		Cursor::new(&self.content).read_be().unwrap()
+		self.reader().read_be().unwrap()
 	}
 }
 

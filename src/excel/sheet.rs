@@ -4,7 +4,10 @@ use super::Language;
 
 use crate::sqpack::files::SqPackFile;
 
+use std::any::Any;
 use std::collections::HashMap;
+use std::io::{Cursor, Seek};
+use std::io::SeekFrom::*;
 
 // ColumnDataType
 
@@ -33,6 +36,12 @@ pub enum ColumnDataType {
 	PackedBool7 = 0x20
 }
 
+// ExcelRow
+
+pub struct ExcelRow {
+	pub columns: Vec<Box<dyn Any>>
+}
+
 // ExcelPage
 
 pub struct ExcelPage {
@@ -42,7 +51,6 @@ pub struct ExcelPage {
 	row_count: u32,
 	rows: Vec<ExcelRow>
 }
-
 
 impl ExcelPage {
 	pub fn new(file: SqPackFile, data: ExdData, def: &ExcelPageDefinition) -> ExcelPage {
@@ -77,10 +85,35 @@ impl ExcelSheet {
 
 	////* Rows Fetching *////
 
+	pub fn get_row_page(&self, row: u32) -> Option<&ExcelPage> {
+		for page in &self.pages {
+			if row >= page.start_id && row < page.start_id + page.row_count - 1 {
+				return Some(page);
+			} else {
+				continue;
+			}
+		}
+		None
+	}
+
 	// Read row from page
 
-	pub fn read_row(&self, row: u32) {
+	pub fn read_page_row(&self, reader: Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) {
+		let offset = page.data.row_offsets.get((row - page.start_id) as usize);
+		println!("{:#?}", offset);
 
+		let columns = Vec::<Box<dyn Any>>::new();
+
+		for column in &self.header.columns {
+			//reader.seek(Start( + self.header.data_offset));
+		}
+
+		//reader.seek(Current());
+	}
+
+	pub fn read_row(&self, row: u32) {
+		let page = self.get_row_page(row).unwrap(); // ?
+		self.read_page_row(page.file.reader(), page, row);
 	}
 
 	// Get from cache / else fetch

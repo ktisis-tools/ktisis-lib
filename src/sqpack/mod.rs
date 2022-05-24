@@ -178,7 +178,7 @@ impl SqPack {
 
 		let header = reader.read::<SqPackFile>().parse::<ExhHeader>();
 
-		println!("{:#?}", header);
+		//println!("{:#?}", header);
 
 		let language = if header.languages.contains(&(self.language as u16)) {
 			self.language
@@ -199,7 +199,7 @@ impl SqPack {
 			let path = format!("exd/{name}_{}{}.exd", page_def.start_id, language.suffix());
 			let hash = lib::hash_path(&path);
 
-			println!("{:#?}", page_def);
+			//println!("{:#?}", page_def);
 
 			let entry = find.chunk.index.map.get(&hash).unwrap();
 			reader.offset(entry.offset as u64);
