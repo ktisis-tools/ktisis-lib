@@ -19,9 +19,9 @@ fn main() {
 	sqpack.index_category(sqpack::category("exd"));
 
 	let shit = sqpack.get_sheet("Item").expect("oop");
-	for i in 1..37492 {
+	/*for i in 1..37492 {
 		shit.get_row(i);
-	}
+	}*/
 
 	let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
 

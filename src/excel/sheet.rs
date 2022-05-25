@@ -131,9 +131,6 @@ impl ExcelSheet {
 				let convert = unsafe {
 					from_utf8_unchecked(slice).to_owned()
 				};
-				/*if column.offset == 0 {
-					println!("Data: {row} {convert}");
-				}*/
 				columns.push(Box::new(convert));
 
 			} else if ColumnDataType::PackedBool0 <= dtype && dtype <= ColumnDataType::PackedBool7 {

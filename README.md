@@ -7,11 +7,11 @@ In-progress rewrite of ktisis-reader-py in Rust. Heavily under development.
 - [x] SqPack repositories
 - [x] Dat categories + indexing
 - [x] Unpacking file content
-- [ ] Unpacking data sheets
+- [x] Unpacking data sheets
   - [x] .exh files
-  - [ ] .exd files
+  - [x] .exd files
   - [ ] .exl files
-- [ ] Parsing data sheets
+- [x] Parsing data sheets
 - [ ] Mapping data sheets
 - [ ] Sheet serialisation (csv/json)
 - [ ] Index Caching
