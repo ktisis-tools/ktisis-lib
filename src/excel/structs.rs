@@ -1,3 +1,5 @@
+use crate::excel::sheet::ColumnDataType;
+
 use binread::BinRead;
 use std::io::SeekFrom::*;
 
@@ -6,7 +8,7 @@ use std::io::SeekFrom::*;
 #[derive(BinRead)]
 #[derive(Debug)]
 pub struct ExcelColumnDefinition {
-	pub data_type: u16,
+	pub data_type: ColumnDataType,
 	pub offset: u16
 }
 

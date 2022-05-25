@@ -165,6 +165,8 @@ impl SqPack {
 	}
 
 	pub fn get_sheet(&self, name: &str) -> Result<ExcelSheet, Error> {
+		println!("getting sheet: {name}");
+
 		let find = self.find_file(format!("exd/{name}.exh"))?;
 
 		// Open file reader for exd chunk

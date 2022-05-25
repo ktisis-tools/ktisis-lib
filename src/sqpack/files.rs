@@ -106,7 +106,6 @@ fn read_blocks<R: Read + Seek>(reader: &mut R, _ro: &ReadOptions, args: (&u64, &
 	let blocks = args.2;
 
 	let base_offset = offset + finfo.size as u64;
-	println!("base_offset: {base_offset}");
 
 	let mut content = Vec::<u8>::new();
 	for block in blocks {

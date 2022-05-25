@@ -46,24 +46,5 @@ pub struct ExdData {
 	pub row_offsets: Vec<ExcelRowOffset>
 }
 
-/*	// oops, got fucked by 1-indexed sheets
-
-fn map_rows<R: Read + Seek>(reader: &mut R, ro: &ReadOptions, args: ())
--> BinResult<HashMap<u32, ExcelRowOffset>> {
-	let mut map = HashMap::<u32, ExcelRowOffset>::new();
-
-	let ct: usize = ro.count.unwrap();
-	for i in 0..ct {
-		let row: ExcelRowOffset = reader.read_be().unwrap();
-		map.insert(
-			row.row_id,
-			row
-		);
-	}
-
-	Ok(map)
-}
-*/
-
 // ExlList (.exl) file
 // TODO

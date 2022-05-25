@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 binread = "^2.2.0"
 inflate = "^0.4.5"
+inner = "^0.1.1"
 phf = { version = "0.10", features = ["macros"] }

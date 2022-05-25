@@ -5,14 +5,22 @@ use super::Language;
 use crate::sqpack::files::SqPackFile;
 
 use std::any::Any;
-use std::collections::HashMap;
-use std::io::{Cursor, Seek};
+use std::str::from_utf8;
+use std::str::from_utf8_unchecked;
 use std::io::SeekFrom::*;
+use std::io::{Cursor, Seek, Error as IoError};
+use std::collections::HashMap;
+
+use binread::{BinRead, BinReaderExt, Error};
+//use binread::io::Error;
+
+use phf::phf_map;
 
 // ColumnDataType
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, PartialOrd, Copy, Clone, BinRead, Debug)]
 #[repr(u16)]
+#[br(repr = u16)]
 pub enum ColumnDataType {
 	String = 0x0,
 	Bool = 0x1,
@@ -87,7 +95,7 @@ impl ExcelSheet {
 
 	pub fn get_row_page(&self, row: u32) -> Option<&ExcelPage> {
 		for page in &self.pages {
-			if row >= page.start_id && row < page.start_id + page.row_count - 1 {
+			if row >= page.start_id && row < page.start_id + page.row_count {
 				return Some(page);
 			} else {
 				continue;
@@ -98,15 +106,65 @@ impl ExcelSheet {
 
 	// Read row from page
 
-	pub fn read_page_row(&self, reader: Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) {
-		let offset = page.data.row_offsets.get((row - page.start_id) as usize);
-		println!("{:#?}", offset);
+	pub fn read_page_row(&self, mut reader: Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) -> Result<usize, binread::Error> {
+		let offset = page.data.row_offsets.get((row - page.start_id) as usize).unwrap();
 
-		let columns = Vec::<Box<dyn Any>>::new();
+		let mut columns = Vec::<Box<dyn Any>>::new();
 
 		for column in &self.header.columns {
-			//reader.seek(Start( + self.header.data_offset));
+			reader.seek(Start(6 + offset.offset as u64 + column.offset as u64));
+
+			let dtype = column.data_type;
+
+			if dtype == ColumnDataType::String {
+
+				// Read string value
+				let str_offset: u32 = reader.read_be()?;
+
+				let start: usize = 6 + offset.offset as usize + str_offset as usize + self.header.data_offset as usize;
+				//reader.seek(Start(start));
+
+				let mut slice = &page.file.content[start..];
+				let end: usize = slice.iter().position(|&x| x == 0).unwrap();
+				slice = &slice[..end];
+				
+				let convert = unsafe {
+					from_utf8_unchecked(slice).to_owned()
+				};
+				/*if column.offset == 0 {
+					println!("Data: {row} {convert}");
+				}*/
+				columns.push(Box::new(convert));
+
+			} else if ColumnDataType::PackedBool0 <= dtype && dtype <= ColumnDataType::PackedBool7 {
+
+				// Convert packed boolean
+				let value: u8 = reader.read_be()?;
+				let shift = (dtype as u16) - (ColumnDataType::PackedBool0 as u16);
+				let bit = 1 << shift;
+				columns.push(Box::new((value & bit) == bit));
+
+			} else {
+
+				// Convert integer values
+				let value: Box<dyn Any> = match dtype {
+					ColumnDataType::Bool => Box::new( reader.read_be::<u8>()? == 1 ),
+					ColumnDataType::Int8 => Box::new( reader.read_be::<i8>()? ),
+					ColumnDataType::UInt8 => Box::new( reader.read_be::<u8>()? ),
+					ColumnDataType::Int16 => Box::new( reader.read_be::<i16>()? ),
+					ColumnDataType::UInt16 => Box::new( reader.read_be::<u16>()? ),
+					ColumnDataType::Int32 => Box::new( reader.read_be::<i32>()? ),
+					ColumnDataType::UInt32 => Box::new( reader.read_be::<u32>()? ),
+					ColumnDataType::Float32 => Box::new( reader.read_be::<f32>()? ),
+					ColumnDataType::Int64 => Box::new( reader.read_be::<i64>()? ),
+					ColumnDataType::UInt64 => Box::new( reader.read_be::<u64>()? ),
+					_ => panic!("type not implemented")
+				};
+
+			}
 		}
+
+		Ok(1)
 
 		//reader.seek(Current());
 	}
