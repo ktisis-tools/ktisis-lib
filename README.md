@@ -17,7 +17,7 @@ In-progress rewrite of ktisis-reader-py in Rust. Heavily under development.
 - [ ] Index Caching
 
 ### User Interface
-- [-] Basic implementation
+- [x] Basic implementation
 - [ ] File reader
 - [ ] Sheet browser
 - [ ] Sheet renderer
