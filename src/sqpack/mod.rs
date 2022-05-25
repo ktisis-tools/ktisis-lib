@@ -159,6 +159,10 @@ impl SqPack {
 
 	////* Sheets *////
 
+	pub fn get_sheet_root(&self) {
+		let root = self.get_file("exd/root.exl".to_string());
+	}
+
 	pub fn get_sheet_header(&self, sheet: &str) -> Result<ExhHeader, Error> {
 		let file = self.get_file(format!("exd/{sheet}.exh"))?;
 		Ok(file.parse::<ExhHeader>())

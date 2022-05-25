@@ -1,31 +1,33 @@
-// debugging file.
+// Modules
 
 pub mod lib;
 pub mod sqpack;
 pub mod excel;
+pub mod interface;
 
-use std::fs;
-use std::{thread, time};
-use std::time::{SystemTime, UNIX_EPOCH};
+// Dependencies
+
+use crate::interface::KtisisUI;
+
+use eframe::egui;
+
+// Constants
 
 const PATH: &str = "D:/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn/game/sqpack/";
 
+// Main
+
 fn main() {
-	let start = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
+	// SqPack
 
-	//let repo = sqpack::load_all(PATH);
+	let sqpack = sqpack::new(PATH).unwrap();
 
-	let mut sqpack = sqpack::new(PATH).unwrap();
-	sqpack.index_category(sqpack::category("exd"));
+	// UI
 
-	let shit = sqpack.get_sheet("Item").expect("oop");
-	/*for i in 1..37492 {
-		shit.get_row(i);
-	}*/
-
-	let end = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-
-	println!("Execution time: {}ms", end - start);
-
-	//thread::sleep(time::Duration::from_millis(60000));
+	let options = eframe::NativeOptions::default();
+	eframe::run_native(
+		"Ktisis",
+		options,
+		Box::new(|_cc| Box::new(KtisisUI::new(sqpack)))
+	);
 }

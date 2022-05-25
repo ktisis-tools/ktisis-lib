@@ -9,4 +9,7 @@ edition = "2021"
 binread = "^2.2.0"
 inflate = "^0.4.5"
 inner = "^0.1.1"
+egui = "^0.18.1"
+egui_extras = "^0.18.0"
+eframe = { version = "^0.18.0", features = [] }
 phf = { version = "0.10", features = ["macros"] }
