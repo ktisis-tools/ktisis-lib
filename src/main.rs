@@ -20,7 +20,8 @@ const PATH: &str = "D:/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Real
 fn main() {
 	// SqPack
 
-	let sqpack = sqpack::new(PATH).unwrap();
+	let mut data = sqpack::new(PATH).unwrap();
+	data.index_category(sqpack::category("exd"));
 
 	// UI
 
@@ -28,6 +29,6 @@ fn main() {
 	eframe::run_native(
 		"Ktisis",
 		options,
-		Box::new(|_cc| Box::new(KtisisUI::new(sqpack)))
+		Box::new(|_cc| Box::new(KtisisUI::new(data)))
 	);
 }

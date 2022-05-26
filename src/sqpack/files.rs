@@ -4,6 +4,7 @@ use std::io::Cursor;
 use std::io::SeekFrom::*;
 use std::io::{Read, Seek};
 use std::collections::HashMap;
+use std::str::from_utf8_unchecked;
 
 use inflate::inflate_bytes;
 
@@ -96,6 +97,12 @@ impl SqPackFile {
 
 	pub fn parse<T: BinRead>(&self) -> T {
 		self.reader().read_be().unwrap()
+	}
+
+	pub fn to_string(&self) -> String {
+		unsafe {
+			from_utf8_unchecked(&self.content).to_owned()
+		}
 	}
 }
 

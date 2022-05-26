@@ -4,8 +4,8 @@ use super::Language;
 
 use crate::sqpack::files::SqPackFile;
 
-use std::any::Any;
-use std::str::from_utf8;
+use std::any;
+use std::any::{Any, TypeId};
 use std::str::from_utf8_unchecked;
 use std::io::SeekFrom::*;
 use std::io::{Cursor, Seek, Error as IoError};
@@ -44,10 +44,43 @@ pub enum ColumnDataType {
 	PackedBool7 = 0x20
 }
 
+#[derive(Debug)]
+pub enum ExcelValue {
+	String(String),
+	Bool(bool),
+	Int8(i8),
+	UInt8(u8),
+	Int16(i16),
+	UInt16(u16),
+	Int32(i32),
+	UInt32(u32),
+	Float32(f32),
+	Int64(i64),
+	UInt64(u64)
+}
+
+impl ExcelValue {
+	pub fn get_string(&self) -> String {
+		match self {
+			ExcelValue::String(val) => val.to_string(),
+			ExcelValue::Bool(val) => val.to_string(),
+			ExcelValue::Int8(val) => val.to_string(),
+			ExcelValue::UInt8(val) => val.to_string(),
+			ExcelValue::Int16(val) => val.to_string(),
+			ExcelValue::UInt16(val) => val.to_string(),
+			ExcelValue::Int32(val) => val.to_string(),
+			ExcelValue::UInt32(val) => val.to_string(),
+			ExcelValue::Float32(val) => val.to_string(),
+			ExcelValue::Int64(val) => val.to_string(),
+			ExcelValue::UInt64(val) => val.to_string()
+		}
+	}
+}
+
 // ExcelRow
 
 pub struct ExcelRow {
-	pub columns: Vec<Box<dyn Any>>
+	pub columns: Vec<ExcelValue>
 }
 
 // ExcelPage
@@ -78,6 +111,7 @@ pub struct ExcelSheet {
 	pub header: ExhHeader,
 	pub language: Language,
 	pub pages: Vec<ExcelPage>,
+	pub start_id: u32,
 	pub row_cache: HashMap<u32, ExcelRow>
 }
 
@@ -87,6 +121,7 @@ impl ExcelSheet {
 			header: header,
 			language: language,
 			pages: Vec::<ExcelPage>::new(),
+			start_id: 0,
 			row_cache: HashMap::<u32, ExcelRow>::new()
 		}
 	}
@@ -106,10 +141,10 @@ impl ExcelSheet {
 
 	// Read row from page
 
-	pub fn read_page_row(&self, mut reader: Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) -> Result<usize, binread::Error> {
+	pub fn read_page_row(&self, mut reader: Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) -> Result<ExcelRow, binread::Error> {
 		let offset = page.data.row_offsets.get((row - page.start_id) as usize).unwrap();
 
-		let mut columns = Vec::<Box<dyn Any>>::new();
+		let mut columns = Vec::<ExcelValue>::new();
 
 		for column in &self.header.columns {
 			reader.seek(Start(6 + offset.offset as u64 + column.offset as u64));
@@ -131,7 +166,7 @@ impl ExcelSheet {
 				let convert = unsafe {
 					from_utf8_unchecked(slice).to_owned()
 				};
-				columns.push(Box::new(convert));
+				columns.push(ExcelValue::String(convert));
 
 			} else if ColumnDataType::PackedBool0 <= dtype && dtype <= ColumnDataType::PackedBool7 {
 
@@ -139,46 +174,45 @@ impl ExcelSheet {
 				let value: u8 = reader.read_be()?;
 				let shift = (dtype as u16) - (ColumnDataType::PackedBool0 as u16);
 				let bit = 1 << shift;
-				columns.push(Box::new((value & bit) == bit));
+				columns.push(ExcelValue::Bool((value & bit) == bit));
 
 			} else {
 
 				// Convert integer values
-				let value: Box<dyn Any> = match dtype {
-					ColumnDataType::Bool => Box::new( reader.read_be::<u8>()? == 1 ),
-					ColumnDataType::Int8 => Box::new( reader.read_be::<i8>()? ),
-					ColumnDataType::UInt8 => Box::new( reader.read_be::<u8>()? ),
-					ColumnDataType::Int16 => Box::new( reader.read_be::<i16>()? ),
-					ColumnDataType::UInt16 => Box::new( reader.read_be::<u16>()? ),
-					ColumnDataType::Int32 => Box::new( reader.read_be::<i32>()? ),
-					ColumnDataType::UInt32 => Box::new( reader.read_be::<u32>()? ),
-					ColumnDataType::Float32 => Box::new( reader.read_be::<f32>()? ),
-					ColumnDataType::Int64 => Box::new( reader.read_be::<i64>()? ),
-					ColumnDataType::UInt64 => Box::new( reader.read_be::<u64>()? ),
+				let value = match dtype {
+					ColumnDataType::Bool => ExcelValue::Bool( reader.read_be::<u8>()? == 1 ),
+					ColumnDataType::Int8 => ExcelValue::Int8( reader.read_be::<i8>()? ),
+					ColumnDataType::UInt8 => ExcelValue::UInt8( reader.read_be::<u8>()? ),
+					ColumnDataType::Int16 => ExcelValue::Int16( reader.read_be::<i16>()? ),
+					ColumnDataType::UInt16 => ExcelValue::UInt16( reader.read_be::<u16>()? ),
+					ColumnDataType::Int32 => ExcelValue::Int32( reader.read_be::<i32>()? ),
+					ColumnDataType::UInt32 => ExcelValue::UInt32( reader.read_be::<u32>()? ),
+					ColumnDataType::Float32 => ExcelValue::Float32( reader.read_be::<f32>()? ),
+					ColumnDataType::Int64 => ExcelValue::Int64( reader.read_be::<i64>()? ),
+					ColumnDataType::UInt64 => ExcelValue::UInt64( reader.read_be::<u64>()? ),
 					_ => panic!("type not implemented")
 				};
-
+				columns.push(value);
 			}
 		}
 
-		Ok(1)
-
-		//reader.seek(Current());
+		Ok(ExcelRow {
+			columns: columns
+		})
 	}
 
-	pub fn read_row(&self, row: u32) {
+	pub fn read_row(&self, row: u32) -> Result<ExcelRow, binread::Error> {
 		let page = self.get_row_page(row).unwrap(); // ?
-		self.read_page_row(page.file.reader(), page, row);
+		self.read_page_row(page.file.reader(), page, row)
 	}
 
 	// Get from cache / else fetch
 
-	pub fn get_row(&self, row: u32) {
-		if self.row_cache.contains_key(&row) {
-			//self.row_cache.get(&row).unwrap()
-			self.read_row(row) // TODO: UNCOMMENT THIS ^^^^^
-		} else {
-			self.read_row(row)
+	pub fn get_row(&mut self, row: u32) -> Result<&ExcelRow, binread::Error> {
+		if !self.row_cache.contains_key(&row) {
+			let read = self.read_row(row).unwrap();
+			self.row_cache.insert(row, read);
 		}
+		Ok(self.row_cache.get(&row).unwrap())
 	}
 }

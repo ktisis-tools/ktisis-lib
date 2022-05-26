@@ -159,13 +159,22 @@ impl SqPack {
 
 	////* Sheets *////
 
-	pub fn get_sheet_root(&self) {
-		let root = self.get_file("exd/root.exl".to_string());
+	pub fn get_sheet_list(&self) -> Result<Vec<String>, Error> {
+		let content = self.get_file("exd/root.exl".to_string())?.to_string();
+
+		let mut entries = Vec::<String>::new();
+
+		let split: Vec<&str> = content.split("\r\n").collect();
+		for i in 1..split.len()-1 {
+			let x = split[i].find(",").unwrap();
+			entries.push(split[i][..x].to_string());
+		}
+
+		Ok(entries)
 	}
 
 	pub fn get_sheet_header(&self, sheet: &str) -> Result<ExhHeader, Error> {
-		let file = self.get_file(format!("exd/{sheet}.exh"))?;
-		Ok(file.parse::<ExhHeader>())
+		Ok(self.get_file(format!("exd/{sheet}.exh"))?.parse::<ExhHeader>())
 	}
 
 	pub fn get_sheet(&self, name: &str) -> Result<ExcelSheet, Error> {
@@ -201,7 +210,12 @@ impl SqPack {
 
 		// Read Pages
 
-		for page_def in &sheet.header.pages {
+		for i in 0..sheet.header.pages.len() {
+			let page_def = sheet.header.pages.get(i).unwrap();
+			if i == 0 {
+				sheet.start_id = page_def.start_id;
+			}
+
 			let path = format!("exd/{name}_{}{}.exd", page_def.start_id, language.suffix());
 			let hash = lib::hash_path(&path);
 
