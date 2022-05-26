@@ -10,14 +10,13 @@ In-progress rewrite of ktisis-reader-py in Rust. Heavily under development.
 - [x] Unpacking data sheets
   - [x] .exh files
   - [x] .exd files
-  - [ ] .exl files
+  - [x] .exl files
 - [x] Parsing data sheets
 - [ ] Mapping data sheets
 - [ ] Sheet serialisation (csv/json)
-- [ ] Index Caching
 
 ### User Interface
 - [x] Basic implementation
 - [ ] File reader
-- [ ] Sheet browser
-- [ ] Sheet renderer
+- [x] Sheet browser
+- [x] Sheet renderer
