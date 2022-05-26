@@ -7,6 +7,7 @@ use crate::sqpack::files::SqPackFile;
 use std::any;
 use std::any::{Any, TypeId};
 use std::str::from_utf8_unchecked;
+use std::ops::Range;
 use std::io::SeekFrom::*;
 use std::io::{Cursor, Seek, Error as IoError};
 use std::collections::HashMap;
@@ -44,7 +45,7 @@ pub enum ColumnDataType {
 	PackedBool7 = 0x20
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum ExcelValue {
 	String(String),
 	Bool(bool),
@@ -79,6 +80,7 @@ impl ExcelValue {
 
 // ExcelRow
 
+#[derive(Clone)]
 pub struct ExcelRow {
 	pub columns: Vec<ExcelValue>
 }
@@ -141,7 +143,7 @@ impl ExcelSheet {
 
 	// Read row from page
 
-	pub fn read_page_row(&self, mut reader: Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) -> Result<ExcelRow, binread::Error> {
+	pub fn read_page_row(&self, mut reader: &mut Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) -> Result<ExcelRow, binread::Error> {
 		let offset = page.data.row_offsets.get((row - page.start_id) as usize).unwrap();
 
 		let mut columns = Vec::<ExcelValue>::new();
@@ -203,7 +205,7 @@ impl ExcelSheet {
 
 	pub fn read_row(&self, row: u32) -> Result<ExcelRow, binread::Error> {
 		let page = self.get_row_page(row).unwrap(); // ?
-		self.read_page_row(page.file.reader(), page, row)
+		self.read_page_row(&mut page.file.reader(), page, row)
 	}
 
 	// Get from cache / else fetch
@@ -214,5 +216,23 @@ impl ExcelSheet {
 			self.row_cache.insert(row, read);
 		}
 		Ok(self.row_cache.get(&row).unwrap())
+	}
+
+	pub fn get_rows(&self, range: Range<u32>) -> Result<Vec<ExcelRow>, binread::Error> {
+		let mut page = self.get_row_page(range.start).unwrap();
+		let mut reader = page.file.reader();
+
+		let mut rows = Vec::<ExcelRow>::new();
+		for i in range {
+			if i > page.start_id + page.row_count {
+				page = self.get_row_page(i).unwrap();
+				reader = page.file.reader();
+			}
+
+			let read = self.read_page_row(&mut reader, page, i).unwrap();
+			rows.push(read);
+		}
+
+		Ok(rows)
 	}
 }

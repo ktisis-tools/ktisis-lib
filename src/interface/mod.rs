@@ -5,7 +5,7 @@ use crate::excel::sheet::ExcelSheet;
 
 use eframe::egui;
 
-use egui::Vec2;
+use egui::{Vec2, RichText};
 use egui_extras::{Size, TableBuilder};
 
 use std::cmp;
@@ -24,6 +24,7 @@ pub struct KtisisUI {
 	sheet_list: Vec<String>,
 	sheet_current: (Option<String>, Option<ExcelSheet>),
 	sheet_header: Vec<String>,
+	column_display: Vec<f32>,
 
 	sheet_search: String,
 	num_rows: usize
@@ -39,6 +40,7 @@ impl KtisisUI {
 			sheet_list: list,
 			sheet_current: (None, None),
 			sheet_header: Vec::<String>::new(),
+			column_display: Vec::<f32>::new(),
 
 			// UI Values
 			sheet_search: "".to_string(),
@@ -78,10 +80,9 @@ impl eframe::App for KtisisUI {
 
 							let mut header = Vec::<String>::new();
 
-							let mut i = 0;
-							for column in &get.header.columns {
+							for i in 0..get.header.columns.len() {
+								let column = get.header.columns.get(i as usize).unwrap();
 								header.push(format!("{}<{:?}>", i, column.data_type));
-								i += 1;
 							}
 
 							self.sheet_current = (Some(sheet.to_string()), Some(get),);
@@ -95,20 +96,64 @@ impl eframe::App for KtisisUI {
 		});
 
 		let main_panel = egui::CentralPanel::default().show(ctx, |ui| {
-			if let Some(name) = &self.sheet_current.0 {
-				ui.heading(name);
-			}
-
 			if let Some(sheet) = &mut self.sheet_current.1 {
+				let name = self.sheet_current.0.as_ref().unwrap();
+				//ui.heading(name);
+				ui.label(RichText::new(name).heading().strong());
+
 				let total_rows = sheet.header.row_count as usize;
-				egui::ScrollArea::vertical().auto_shrink([false; 2]).show_rows(ui, ui.text_style_height(&text_style), total_rows, |ui, row_range| {
+				let total_cols = self.sheet_header.len();
+
+				let text_height = ui.text_style_height(&text_style);
+				egui::ScrollArea::horizontal().id_source(name).auto_shrink([false; 2]).show(ui, |ui| {
+					TableBuilder::new(ui)
+					.striped(true)
+					.resizable(true)
+					.columns(Size::remainder().at_least(100.0), total_cols)
+					.cell_layout(egui::Layout::left_to_right().with_main_wrap(false))
+					.header(text_height, |mut header| {
+						for column in &self.sheet_header {
+							header.col(|ui| {
+								ui.strong(column);
+							});
+						}
+					})
+					.body(|mut body| {
+						body.rows(text_height, total_rows, |row_index, mut table_row| {
+							if let Ok(row) = sheet.get_row(sheet.start_id + row_index as u32) {
+								for column in &row.columns {
+									table_row.col(|ui| {
+										ui.label(column.get_string());
+									});
+								}
+							}
+						});
+
+							/*for i in row_range {
+								if let Ok(row) = sheet.get_row(sheet.start_id + i as u32) {
+									body.row(text_height, |mut table_row| {
+										for column in &row.columns {
+											table_row.col(|ui| {
+												ui.label(column.get_string());
+											});
+										}
+									});
+								}
+							}*/
+					});
+				});
+
+				/*egui::ScrollArea::both().auto_shrink([false; 2]).show_rows(ui, ui.text_style_height(&text_style), total_rows, |ui, row_range| {
 					egui::Grid::new("sheet")
 					.striped(true)
+					.max_col_width(700.0)
 					.show(ui, |ui| {
-						/*for column in &self.sheet_header {
-							ui.label(column);
+						if row_range.start == 0 {
+							for column in &self.sheet_header {
+								ui.label(column);
+							}
+							ui.end_row();
 						}
-						ui.end_row();*/
 						for i in row_range {
 							if let Ok(row) = sheet.get_row(sheet.start_id + i as u32) {
 								for column in &row.columns {
@@ -118,7 +163,7 @@ impl eframe::App for KtisisUI {
 							}
 						}
 					});
-				});
+				});*/
 			}
 		});
 	}
