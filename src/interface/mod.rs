@@ -8,14 +8,6 @@ use eframe::egui;
 use egui::{Vec2, RichText};
 use egui_extras::{Size, TableBuilder};
 
-use std::cmp;
-
-enum DemoType {
-    Manual,
-    ManyHomogenous,
-    ManyHeterogenous,
-}
-
 // KtisisUI
 
 pub struct KtisisUI {
@@ -32,7 +24,7 @@ pub struct KtisisUI {
 
 impl KtisisUI {
 	pub fn new(sqpack: SqPack) -> Self {
-		let mut list = sqpack.get_sheet_list().expect("failed to read excel list");
+		let list = sqpack.get_sheet_list().expect("failed to read excel list");
 
 		Self {
 			sqpack: sqpack,
@@ -57,8 +49,8 @@ impl eframe::App for KtisisUI {
 
 		let text_style = egui::TextStyle::Body;
 
-		let left_panel = egui::SidePanel::left("left_panel").min_width(200.0).max_width(300.0);
-		left_panel.show(ctx, |ui| {
+		egui::SidePanel::left("left_panel").min_width(200.0).max_width(300.0)
+		.show(ctx, |ui| {
 			egui::Frame::none().inner_margin(Vec2 { x:0.0, y:10.0 }).show(ui, |ui| {
 				ui.label("Sheet Name:");
 				ui.text_edit_singleline(&mut self.sheet_search);
@@ -95,7 +87,7 @@ impl eframe::App for KtisisUI {
 			ui.separator();
 		});
 
-		let main_panel = egui::CentralPanel::default().show(ctx, |ui| {
+		egui::CentralPanel::default().show(ctx, |ui| {
 			if let Some(sheet) = &mut self.sheet_current.1 {
 				let name = self.sheet_current.0.as_ref().unwrap();
 				//ui.heading(name);
@@ -118,7 +110,7 @@ impl eframe::App for KtisisUI {
 							});
 						}
 					})
-					.body(|mut body| {
+					.body(|body| {
 						body.rows(text_height, total_rows, |row_index, mut table_row| {
 							if let Ok(row) = sheet.get_row(sheet.start_id + row_index as u32) {
 								for column in &row.columns {
@@ -128,42 +120,8 @@ impl eframe::App for KtisisUI {
 								}
 							}
 						});
-
-							/*for i in row_range {
-								if let Ok(row) = sheet.get_row(sheet.start_id + i as u32) {
-									body.row(text_height, |mut table_row| {
-										for column in &row.columns {
-											table_row.col(|ui| {
-												ui.label(column.get_string());
-											});
-										}
-									});
-								}
-							}*/
 					});
 				});
-
-				/*egui::ScrollArea::both().auto_shrink([false; 2]).show_rows(ui, ui.text_style_height(&text_style), total_rows, |ui, row_range| {
-					egui::Grid::new("sheet")
-					.striped(true)
-					.max_col_width(700.0)
-					.show(ui, |ui| {
-						if row_range.start == 0 {
-							for column in &self.sheet_header {
-								ui.label(column);
-							}
-							ui.end_row();
-						}
-						for i in row_range {
-							if let Ok(row) = sheet.get_row(sheet.start_id + i as u32) {
-								for column in &row.columns {
-									ui.label(column.get_string());
-								}
-								ui.end_row();
-							}
-						}
-					});
-				});*/
 			}
 		});
 	}

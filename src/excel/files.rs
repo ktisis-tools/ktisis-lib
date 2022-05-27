@@ -1,11 +1,8 @@
 use super::structs::*;
 
-use std::collections::HashMap;
-
-use std::io::{Read, Seek};
 use std::io::SeekFrom::*;
 
-use binread::{BinRead, BinResult, BinReaderExt, ReadOptions};
+use binread::BinRead;
 
 // ExhHeader (.exh) file
 

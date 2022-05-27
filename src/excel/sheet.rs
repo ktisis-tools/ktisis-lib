@@ -4,18 +4,13 @@ use super::Language;
 
 use crate::sqpack::files::SqPackFile;
 
-use std::any;
-use std::any::{Any, TypeId};
 use std::str::from_utf8_unchecked;
 use std::ops::Range;
 use std::io::SeekFrom::*;
-use std::io::{Cursor, Seek, Error as IoError};
+use std::io::{Cursor, Seek};
 use std::collections::HashMap;
 
-use binread::{BinRead, BinReaderExt, Error};
-//use binread::io::Error;
-
-use phf::phf_map;
+use binread::{BinRead, BinReaderExt};
 
 // ColumnDataType
 
@@ -143,13 +138,13 @@ impl ExcelSheet {
 
 	// Read row from page
 
-	pub fn read_page_row(&self, mut reader: &mut Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) -> Result<ExcelRow, binread::Error> {
+	pub fn read_page_row(&self, reader: &mut Cursor<&Vec<u8>>, page: &ExcelPage, row: u32) -> Result<ExcelRow, binread::Error> {
 		let offset = page.data.row_offsets.get((row - page.start_id) as usize).unwrap();
 
 		let mut columns = Vec::<ExcelValue>::new();
 
 		for column in &self.header.columns {
-			reader.seek(Start(6 + offset.offset as u64 + column.offset as u64));
+			reader.seek(Start(6 + offset.offset as u64 + column.offset as u64))?;
 
 			let dtype = column.data_type;
 

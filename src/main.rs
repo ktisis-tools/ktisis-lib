@@ -9,8 +9,6 @@ pub mod interface;
 
 use crate::interface::KtisisUI;
 
-use eframe::egui;
-
 // Constants
 
 const PATH: &str = "D:/Program Files (x86)/SquareEnix/FINAL FANTASY XIV - A Realm Reborn/game/sqpack/";
