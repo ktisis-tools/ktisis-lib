@@ -97,7 +97,7 @@ impl eframe::App for KtisisUI {
 				let total_cols = self.sheet_header.len();
 
 				let text_height = ui.text_style_height(&text_style);
-				egui::ScrollArea::horizontal().id_source(name).auto_shrink([false; 2]).show(ui, |ui| {
+				egui::ScrollArea::horizontal().id_source(name).auto_shrink([false; 2]).show_viewport(ui, |ui, rect| {
 					TableBuilder::new(ui)
 					.striped(true)
 					.resizable(true)
@@ -111,9 +111,21 @@ impl eframe::App for KtisisUI {
 						}
 					})
 					.body(|body| {
+						let widths = body.widths().to_owned();
 						body.rows(text_height, total_rows, |row_index, mut table_row| {
 							if let Ok(row) = sheet.get_row(sheet.start_id + row_index as u32) {
-								for column in &row.columns {
+								let mut total_width = 0.0;
+								for i in 0..row.columns.len() {
+									let width = widths[i];
+									total_width += width;
+									if total_width + width*2.0 < rect.min.x - width*2.0 {
+										table_row.col(|ui| {});
+										continue;
+									} else if total_width > rect.max.x {
+										break;
+									}
+
+									let column = &row.columns[i];
 									table_row.col(|ui| {
 										ui.label(column.get_string());
 									});
