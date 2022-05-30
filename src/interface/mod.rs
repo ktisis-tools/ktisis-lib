@@ -81,7 +81,7 @@ impl eframe::App for KtisisUI {
 
 		match &self.view {
 			KtisisView::Sheets => SheetUI::render(self, ctx),
-			Files => self.no_impl()
+			_ => self.no_impl()
 		};
 	}
 }
