@@ -59,9 +59,8 @@ impl KtisisUI {
 
 	// Sheets
 
-	fn get_sheet(&mut self, sheet: &str) {
+	fn get_sheet(&mut self, sheet: &str) -> bool {
 		if let Ok(get) = self.sqpack.get_sheet(sheet) {
-
 			let mut header = Vec::<String>::new();
 
 			for i in 0..get.header.columns.len() {
@@ -72,6 +71,10 @@ impl KtisisUI {
 			self.sheet_current = Some(get);
 			self.sheet_name = sheet.to_string();
 			self.sheet_header = header;
+
+			true
+		} else {
+			false
 		}
 	}
 }

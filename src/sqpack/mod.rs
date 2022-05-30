@@ -19,7 +19,7 @@ use std::io::{Error, ErrorKind};
 pub struct SqPack {
 	path: String,
 	chunks: HashMap<u8, HashMap<u32, SqPackChunk>>, // category: [chunks]
-	language: Language // default
+	pub language: Language // default
 }
 
 impl SqPack {
@@ -216,16 +216,18 @@ impl SqPack {
 			let path = format!("exd/{name}_{}{}.exd", page_def.start_id, language.suffix());
 			let hash = lib::hash_path(&path);
 
-			//println!("{:#?}", page_def);
+			if let Some(entry) = find.chunk.index.map.get(&hash) {
+			//let entry = find.chunk.index.map.get(&hash).unwrap();
+				reader.offset(entry.offset as u64);
+					
+				let file = reader.read::<SqPackFile>();
+				let data = file.parse::<ExdData>();
 
-			let entry = find.chunk.index.map.get(&hash).unwrap();
-			reader.offset(entry.offset as u64);
-				
-			let file = reader.read::<SqPackFile>();
-			let data = file.parse::<ExdData>();
-
-			let page = ExcelPage::new(file, data, page_def);
-			sheet.pages.push(page);
+				let page = ExcelPage::new(file, data, page_def);
+				sheet.pages.push(page);
+			} else {
+				return Err(Error::from(ErrorKind::NotFound));
+			}
 		}
 
 		Ok(sheet)

@@ -10,12 +10,17 @@ pub struct SheetUI {}
 impl SheetUI {
 	pub fn render(ktisis: &mut KtisisUI, ctx: &egui::Context) {
 		if let Some(language) = ktisis.sheet_change_language {
+			let cur = ktisis.sqpack.language;
+
 			ktisis.sqpack.set_language(language);
-			ktisis.get_sheet(&ktisis.sheet_name.to_owned());
+			let result = ktisis.get_sheet(&ktisis.sheet_name.to_owned());
+
+			if !result {
+				println!("language switch failed. going back to {:?}", cur);
+				ktisis.sqpack.set_language(cur);
+			}
 
 			ktisis.sheet_change_language = None;
-
-			//return;
 		}
 
 		let text_style = egui::TextStyle::Body;
