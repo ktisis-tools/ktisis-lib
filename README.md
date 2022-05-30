@@ -18,5 +18,16 @@ In-progress rewrite of ktisis-reader-py in Rust. Heavily under development.
 ### User Interface
 - [x] Basic implementation
 - [ ] File reader
+- [ ] Image viewer
 - [x] Sheet browser
 - [x] Sheet renderer
+
+### Issues
+- [x] [#1](https://github.com/ktisis-tools/ktisis/issues/1) Error Propagation
+- [ ] [#2](https://github.com/ktisis-tools/ktisis/issues/2) Struct Magic Strings
+
+## Potential Features
+
+Things that would be cool to add, but would take a massive amount of effort.
+
+- [ ] Model Viewer
