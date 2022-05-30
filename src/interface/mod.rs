@@ -12,14 +12,15 @@ use egui::style::Margin;
 
 // KtisisUI
 
-enum KtisisPage {
-	Sheets = 1
+enum KtisisView {
+	Files,
+	Sheets
 }
 
 pub struct KtisisUI {
 	sqpack: SqPack,
 
-	page: KtisisPage,
+	view: KtisisView,
 
 	sheet_list: Vec<String>,
 	sheet_current: (Option<String>, Option<ExcelSheet>),
@@ -30,6 +31,8 @@ pub struct KtisisUI {
 	num_rows: usize
 }
 
+// App Frame
+
 impl KtisisUI {
 	pub fn new(sqpack: SqPack) -> Self {
 		let list = sqpack.get_sheet_list().expect("failed to read excel list");
@@ -37,7 +40,7 @@ impl KtisisUI {
 		Self {
 			sqpack: sqpack,
 
-			page: KtisisPage::Sheets,
+			view: KtisisView::Sheets,
 
 			sheet_list: list,
 			sheet_current: (None, None),
@@ -49,9 +52,9 @@ impl KtisisUI {
 			num_rows: 32
 		}
 	}
-}
 
-// App Frame
+	fn no_impl(&mut self) {}
+}
 
 impl eframe::App for KtisisUI {
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -68,15 +71,17 @@ impl eframe::App for KtisisUI {
 		.show(ctx, |ui| {
 			ui.horizontal(|ui| {
 				if ui.button("Files").clicked() {
+					self.view = KtisisView::Files;
 				}
 				if ui.button("Sheets").clicked() {
-					self.page = KtisisPage::Sheets;
+					self.view = KtisisView::Sheets;
 				}
 			});
 		});
 
-		match self.page {
-			KtisisPage::Sheets => SheetUI::render(self, ctx)
+		match &self.view {
+			KtisisView::Sheets => SheetUI::render(self, ctx),
+			Files => self.no_impl()
 		};
 	}
 }
