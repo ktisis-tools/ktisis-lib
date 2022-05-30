@@ -9,6 +9,15 @@ pub struct SheetUI {}
 
 impl SheetUI {
 	pub fn render(ktisis: &mut KtisisUI, ctx: &egui::Context) {
+		if let Some(language) = ktisis.sheet_change_language {
+			ktisis.sqpack.set_language(language);
+			ktisis.get_sheet(&ktisis.sheet_name.to_owned());
+
+			ktisis.sheet_change_language = None;
+
+			//return;
+		}
+
 		let text_style = egui::TextStyle::Body;
 
 		egui::SidePanel::left("left_panel").min_width(200.0).max_width(300.0)
@@ -21,27 +30,16 @@ impl SheetUI {
 
 			let total_rows = ktisis.sheet_list.len();
 			egui::ScrollArea::vertical().auto_shrink([false; 2]).show_rows(ui, ui.text_style_height(&text_style), total_rows, |ui, row_range| {
-				let sel = match &ktisis.sheet_current.0 {
+				/*let sel = match &ktisis.sheet_name {
 					Some(name) => name.to_owned(),
 					_ => "".to_string()
-				};
+				};*/
 
 				for row in row_range {
 					let sheet = ktisis.sheet_list.get(row).unwrap();
 
-					if ui.selectable_label(sheet == &sel, sheet).clicked() {
-						if let Ok(get) = ktisis.sqpack.get_sheet(sheet) {
-
-							let mut header = Vec::<String>::new();
-
-							for i in 0..get.header.columns.len() {
-								let column = get.header.columns.get(i as usize).unwrap();
-								header.push(format!("{}<{:?}>", i, column.data_type));
-							}
-
-							ktisis.sheet_current = (Some(sheet.to_string()), Some(get),);
-							ktisis.sheet_header = header;
-						}
+					if ui.selectable_label(sheet == &ktisis.sheet_name, sheet).clicked() {
+						ktisis.get_sheet(&sheet.to_owned());
 					}
 				}
 			});
@@ -50,19 +48,24 @@ impl SheetUI {
 		});
 
 		egui::CentralPanel::default().show(ctx, |ui| {
-			if let Some(sheet) = &mut ktisis.sheet_current.1 {
-				let name = ktisis.sheet_current.0.as_ref().unwrap();
+			if let Some(sheet) = &mut ktisis.sheet_current {
 				//ui.heading(name);
-				ui.label(RichText::new(name).heading().strong());
+				ui.label(RichText::new(ktisis.sheet_name.to_owned()).heading().strong());
 
 				egui::ComboBox::from_id_source("sheet_language")
 				.selected_text(format!("{:?}", sheet.language))
 				.show_ui(ui, |ui| {
 					for language in &sheet.header.languages {
-						ui.selectable_label(
+						let click = ui.selectable_label(
 							language == &sheet.language,
 							format!("{:?}", language
 						));
+
+						if click.clicked() {
+							ktisis.sheet_change_language = Some(*language);
+							//ktisis.sqpack.set_language(*language);
+							//ktisis.get_sheet(name);
+						}
 					}
 				});
 
@@ -72,7 +75,7 @@ impl SheetUI {
 				let total_cols = ktisis.sheet_header.len();
 
 				let text_height = ui.text_style_height(&text_style);
-				egui::ScrollArea::horizontal().id_source(name).auto_shrink([false; 2]).show_viewport(ui, |ui, rect| {
+				egui::ScrollArea::horizontal().id_source(ktisis.sheet_name.to_owned()).auto_shrink([false; 2]).show_viewport(ui, |ui, rect| {
 					TableBuilder::new(ui)
 					.striped(true)
 					.resizable(true)

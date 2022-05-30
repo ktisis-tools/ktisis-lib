@@ -2,6 +2,7 @@ mod style;
 mod sheets;
 
 use crate::sqpack::SqPack;
+use crate::excel::Language;
 use crate::excel::sheet::ExcelSheet;
 
 use sheets::SheetUI;
@@ -23,12 +24,13 @@ pub struct KtisisUI {
 	view: KtisisView,
 
 	sheet_list: Vec<String>,
-	sheet_current: (Option<String>, Option<ExcelSheet>),
+	sheet_current: Option<ExcelSheet>,
+	sheet_name: String,
 	sheet_header: Vec<String>,
+	sheet_change_language: Option<Language>,
 	column_display: Vec<f32>,
 
-	sheet_search: String,
-	num_rows: usize
+	sheet_search: String
 }
 
 // App Frame
@@ -43,17 +45,35 @@ impl KtisisUI {
 			view: KtisisView::Sheets,
 
 			sheet_list: list,
-			sheet_current: (None, None),
+			sheet_current: None,
+			sheet_name: "".to_string(),
 			sheet_header: Vec::<String>::new(),
+			sheet_change_language: None,
 			column_display: Vec::<f32>::new(),
 
-			// UI Values
-			sheet_search: "".to_string(),
-			num_rows: 32
+			sheet_search: "".to_string()
 		}
 	}
 
 	fn no_impl(&mut self) {}
+
+	// Sheets
+
+	fn get_sheet(&mut self, sheet: &str) {
+		if let Ok(get) = self.sqpack.get_sheet(sheet) {
+
+			let mut header = Vec::<String>::new();
+
+			for i in 0..get.header.columns.len() {
+				let column = get.header.columns.get(i as usize).unwrap();
+				header.push(format!("{}<{:?}>", i, column.data_type));
+			}
+
+			self.sheet_current = Some(get);
+			self.sheet_name = sheet.to_string();
+			self.sheet_header = header;
+		}
+	}
 }
 
 impl eframe::App for KtisisUI {

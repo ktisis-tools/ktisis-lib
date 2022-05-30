@@ -4,7 +4,7 @@ mod headers;
 use crate::lib;
 use crate::lib::reader::DatReader;
 
-use crate::excel::{Language};
+use crate::excel::Language;
 use crate::excel::sheet::*;
 use crate::excel::files::*;
 
@@ -35,9 +35,8 @@ impl SqPack {
 		}
 	}
 
-	pub fn set_language(mut self, language: Language) -> Self {
+	pub fn set_language(&mut self, language: Language) {
 		self.language = language;
-		self
 	}
 	
 	////* Indexing *////
