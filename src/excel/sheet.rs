@@ -4,8 +4,8 @@ use super::Language;
 
 use crate::sqpack::files::SqPackFile;
 
-use std::str::from_utf8_unchecked;
 use std::ops::Range;
+use std::string::String;
 use std::io::SeekFrom::*;
 use std::io::{Cursor, Seek};
 use std::collections::HashMap;
@@ -160,10 +160,11 @@ impl ExcelSheet {
 				let end: usize = slice.iter().position(|&x| x == 0).unwrap();
 				slice = &slice[..end];
 				
-				let convert = unsafe {
-					from_utf8_unchecked(slice).to_owned()
-				};
-				columns.push(ExcelValue::String(convert));
+				columns.push(
+					ExcelValue::String(
+						String::from_utf8_lossy(slice).to_owned().to_string()
+					)
+				);
 
 			} else if ColumnDataType::PackedBool0 <= dtype && dtype <= ColumnDataType::PackedBool7 {
 

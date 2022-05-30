@@ -46,6 +46,11 @@ impl SheetUI {
 				}
 			});
 
+			egui::ComboBox::from_label("Language")
+			.show_ui(ui, |ui| {
+				ui.selectable_label(true, "First");
+			});
+
 			ui.separator();
 		});
 
