@@ -7,8 +7,9 @@ use crate::excel::sheet::ExcelSheet;
 
 use sheets::SheetUI;
 
-use eframe::egui;
+use native_dialog::{MessageDialog, MessageType};
 
+use eframe::egui;
 use egui::style::Margin;
 
 // KtisisUI
@@ -57,6 +58,15 @@ impl KtisisUI {
 
 	fn no_impl(&mut self) {}
 
+	fn error(&mut self, err: String) {
+		MessageDialog::new()
+		.set_type(MessageType::Error)
+		.set_title("Error")
+		.set_text(&err)
+		.show_alert()
+		.expect("encountered an error while trying to display an error");
+	}
+
 	// Sheets
 
 	fn get_sheet(&mut self, sheet: &str) -> bool {
@@ -83,14 +93,13 @@ impl eframe::App for KtisisUI {
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 		ctx.set_style(style::get_style());
 
-		let m = Margin {
+		egui::TopBottomPanel::top("top_panel")
+		.frame(egui::Frame::none().inner_margin(Margin {
 			left: 5.0,
 			right: 0.0,
 			top: 8.0,
 			bottom: 5.0
-		};
-		egui::TopBottomPanel::top("top_panel")
-		.frame(egui::Frame::none().inner_margin(m))
+		}))
 		.show(ctx, |ui| {
 			ui.horizontal(|ui| {
 				if ui.button("Files").clicked() {

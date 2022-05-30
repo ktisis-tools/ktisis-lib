@@ -18,6 +18,11 @@ impl SheetUI {
 			if !result {
 				println!("language switch failed. going back to {:?}", cur);
 				ktisis.sqpack.set_language(cur);
+
+				ktisis.error(format!(
+					"Failed to load language: {:?}\nSome languages (i.e. Korean, Chinese) require a unique installation of the game.",
+					language
+				));
 			}
 
 			ktisis.sheet_change_language = None;
@@ -35,11 +40,6 @@ impl SheetUI {
 
 			let total_rows = ktisis.sheet_list.len();
 			egui::ScrollArea::vertical().auto_shrink([false; 2]).show_rows(ui, ui.text_style_height(&text_style), total_rows, |ui, row_range| {
-				/*let sel = match &ktisis.sheet_name {
-					Some(name) => name.to_owned(),
-					_ => "".to_string()
-				};*/
-
 				for row in row_range {
 					let sheet = ktisis.sheet_list.get(row).unwrap();
 

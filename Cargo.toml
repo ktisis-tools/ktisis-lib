@@ -13,3 +13,4 @@ egui = "^0.18.1"
 egui_extras = "^0.18.0"
 eframe = { version = "^0.18.0", features = [] }
 phf = { version = "0.10", features = ["macros"] }
+native-dialog = "^0.6.3"
