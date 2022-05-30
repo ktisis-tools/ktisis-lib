@@ -22,6 +22,8 @@ enum KtisisView {
 pub struct KtisisUI {
 	sqpack: SqPack,
 
+	_init: bool,
+
 	view: KtisisView,
 
 	sheet_list: Vec<String>,
@@ -42,6 +44,8 @@ impl KtisisUI {
 
 		Self {
 			sqpack: sqpack,
+
+			_init: false,
 
 			view: KtisisView::Sheets,
 
@@ -91,7 +95,17 @@ impl KtisisUI {
 
 impl eframe::App for KtisisUI {
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-		ctx.set_style(style::get_style());
+		if !self._init {
+			// Style
+			ctx.set_style(style::get_style());
+
+			// Font
+			let mut fonts = egui::FontDefinitions::default();
+			ctx.set_fonts(fonts);
+
+			// Finish
+			self._init = true;
+		}
 
 		egui::TopBottomPanel::top("top_panel")
 		.frame(egui::Frame::none().inner_margin(Margin {
