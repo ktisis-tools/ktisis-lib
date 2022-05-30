@@ -11,6 +11,7 @@ use native_dialog::{MessageDialog, MessageType};
 
 use eframe::egui;
 use egui::style::Margin;
+use egui::{FontData, FontFamily};
 
 // KtisisUI
 
@@ -96,15 +97,34 @@ impl KtisisUI {
 impl eframe::App for KtisisUI {
 	fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 		if !self._init {
+
 			// Style
+
 			ctx.set_style(style::get_style());
 
 			// Font
+
 			let mut fonts = egui::FontDefinitions::default();
+
+			fonts.font_data.insert(
+				"NotoSans".to_owned(),
+				FontData::from_static(include_bytes!("../../fonts/NotoSans.ttf"))
+			);
+			fonts.families.get_mut(&FontFamily::Proportional).unwrap().insert(0, "NotoSans".to_owned());
+
+			fonts.font_data.insert(
+				"NotoSansJP".to_owned(),
+				FontData::from_static(include_bytes!("../../fonts/NotoSansJP.otf"))
+			);
+			fonts.families.get_mut(&FontFamily::Proportional).unwrap().insert(1, "NotoSansJP".to_owned());
+
 			ctx.set_fonts(fonts);
 
 			// Finish
+
 			self._init = true;
+
+			return;
 		}
 
 		egui::TopBottomPanel::top("top_panel")
