@@ -81,7 +81,7 @@ impl SheetUI {
 						body.rows(text_height, total_rows, |row_index, mut table_row| {
 							if let Ok(row) = sheet.get_row(sheet.start_id + row_index as u32) {
 								let mut total_width = 0.0;
-								for i in 0..row.columns.len() {
+								for i in 0..row.columns.len()+1 {
 									let width = widths[i];
 									total_width += width;
 									if total_width + width*2.0 < rect.min.x - width*2.0 {
@@ -96,7 +96,7 @@ impl SheetUI {
 											ui.label(format!("{row_index}"));
 										});
 									} else {
-										let column = &row.columns[i];
+										let column = &row.columns[i - 1];
 										table_row.col(|ui| {
 											ui.label(column.get_string());
 										});
