@@ -63,9 +63,13 @@ impl SheetUI {
 					TableBuilder::new(ui)
 					.striped(true)
 					.resizable(true)
-					.columns(Size::remainder().at_least(100.0), total_cols)
+					.columns(Size::remainder().at_least(100.0), total_cols + 1)
 					.cell_layout(egui::Layout::left_to_right().with_main_wrap(false))
 					.header(text_height, |mut header| {
+						header.col(|ui| {
+							ui.strong("Key");
+						});
+
 						for column in &ktisis.sheet_header {
 							header.col(|ui| {
 								ui.strong(column);
@@ -87,10 +91,16 @@ impl SheetUI {
 										break;
 									}
 
-									let column = &row.columns[i];
-									table_row.col(|ui| {
-										ui.label(column.get_string());
-									});
+									if i == 0 {
+										table_row.col(|ui| {
+											ui.label(format!("{row_index}"));
+										});
+									} else {
+										let column = &row.columns[i];
+										table_row.col(|ui| {
+											ui.label(column.get_string());
+										});
+									}
 								}
 							}
 						});
