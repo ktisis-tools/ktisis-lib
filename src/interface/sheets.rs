@@ -68,8 +68,6 @@ impl SheetUI {
 
 						if click.clicked() {
 							ktisis.sheet_change_language = Some(*language);
-							//ktisis.sqpack.set_language(*language);
-							//ktisis.get_sheet(name);
 						}
 					}
 				});
@@ -80,6 +78,8 @@ impl SheetUI {
 				let total_cols = ktisis.sheet_header.len();
 
 				let text_height = ui.text_style_height(&text_style);
+
+				let offset = ui.min_rect().min.x;
 				egui::ScrollArea::horizontal().id_source(ktisis.sheet_name.to_owned()).auto_shrink([false; 2]).show_viewport(ui, |ui, rect| {
 					TableBuilder::new(ui)
 					.striped(true)
@@ -102,13 +102,20 @@ impl SheetUI {
 						body.rows(text_height, total_rows, |row_index, mut table_row| {
 							if let Ok(row) = sheet.get_row(sheet.start_id + row_index as u32) {
 								let mut total_width = 0.0;
+
 								for i in 0..row.columns.len()+1 {
 									let width = widths[i];
 									total_width += width;
-									if total_width + width*2.0 < rect.min.x - width*2.0 {
+
+									/*
+										there's some funky shit going on here with spacing between columns
+										so this is mildly inaccurate, but not enough to make a big impact on performance
+										should revisit this at some point
+									*/
+									if total_width + offset <= rect.min.x - offset {
 										table_row.col(|_ui| {});
 										continue;
-									} else if total_width > rect.max.x {
+									} else if total_width - width >= rect.max.x {
 										break;
 									}
 

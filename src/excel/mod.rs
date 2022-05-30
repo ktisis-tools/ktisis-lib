@@ -16,8 +16,8 @@ pub enum Language {
 	English = 2,
 	German = 3,
 	French = 4,
-	ChineseSimplified = 5,
-	ChineseTraditional = 6,
+	ChineseSimple = 5,
+	ChineseTrad = 6,
 	Korean = 7
 }
 
@@ -27,8 +27,8 @@ pub static LANGUAGE: phf::Map<u16, (&'static str, Language)> = phf_map! {
 	2u16 => ("en", Language::English),
 	3u16 => ("de", Language::German),
 	4u16 => ("fr", Language::French),
-	5u16 => ("chs", Language::ChineseSimplified),
-	6u16 => ("cht", Language::ChineseTraditional),
+	5u16 => ("chs", Language::ChineseSimple),
+	6u16 => ("cht", Language::ChineseTrad),
 	7u16 => ("ko", Language::Korean)
 };
 
