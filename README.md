@@ -14,6 +14,7 @@ In-progress rewrite of ktisis-reader-py in Rust. Heavily under development.
 - [x] Parsing data sheets
 - [ ] Mapping data sheets
 - [ ] Sheet serialisation (csv/json)
+- [ ] File/Image Discovery & Export
 
 ### User Interface
 - [x] Basic implementation
