@@ -34,7 +34,9 @@ pub struct KtisisUI {
 	sheet_change_language: Option<Language>,
 	column_display: Vec<f32>,
 
-	sheet_search: String
+	sheet_search: String,
+	_search_res: Vec<String>,
+	_search_len: u16
 }
 
 // App Frame
@@ -57,7 +59,9 @@ impl KtisisUI {
 			sheet_change_language: None,
 			column_display: Vec::<f32>::new(),
 
-			sheet_search: "".to_string()
+			sheet_search: "".to_string(),
+			_search_res: Vec::<String>::new(),
+			_search_len: 0
 		}
 	}
 

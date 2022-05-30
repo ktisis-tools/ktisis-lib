@@ -20,7 +20,7 @@ impl SheetUI {
 				ktisis.sqpack.set_language(cur);
 
 				ktisis.error(format!(
-					"Failed to load language: {:?}\nSome languages (i.e. Korean, Chinese) require a unique installation of the game.",
+					"Failed to load language: {:?}\nSome languages (i.e. Korean, Chinese) require a special installation of the game.",
 					language
 				));
 			}
@@ -34,14 +34,36 @@ impl SheetUI {
 		.show(ctx, |ui| {
 			egui::Frame::none().inner_margin(Vec2 { x:0.0, y:10.0 }).show(ui, |ui| {
 				ui.label("Sheet Name:");
-				ui.text_edit_singleline(&mut ktisis.sheet_search);
+
+				let search = ui.text_edit_singleline(&mut ktisis.sheet_search);
+				if search.changed() {
+					let len = ktisis.sheet_search.len() as u16;
+					if len == 0 {
+						ktisis._search_res.retain(|_| false);
+					} else {
+						let mut tar = &mut ktisis._search_res;
+						if len < ktisis._search_len || ktisis._search_len == 0 {
+							tar = &mut ktisis.sheet_list;
+						}
+						ktisis._search_res = tar.iter().filter(|name| name.to_lowercase().contains(&ktisis.sheet_search.to_lowercase())).cloned().collect();
+					}
+					println!("{}", ktisis._search_res.len());
+					ktisis._search_len = len;
+				}
+
 				ui.separator();
 			});
 
-			let total_rows = ktisis.sheet_list.len();
+			let mut lref = &mut ktisis.sheet_list;
+			if ktisis._search_len > 0 {
+				lref = &mut ktisis._search_res;
+			}
+			let list = lref.to_owned();
+
+			let total_rows = list.len();
 			egui::ScrollArea::vertical().auto_shrink([false; 2]).show_rows(ui, ui.text_style_height(&text_style), total_rows, |ui, row_range| {
 				for row in row_range {
-					let sheet = ktisis.sheet_list.get(row).unwrap();
+					let sheet = list.get(row).unwrap();
 
 					if ui.selectable_label(sheet == &ktisis.sheet_name, sheet).clicked() {
 						ktisis.get_sheet(&sheet.to_owned());
@@ -113,6 +135,10 @@ impl SheetUI {
 										should revisit this at some point
 									*/
 									if total_width + offset <= rect.min.x - offset {
+										/*
+											is there a better alternative to this?
+											feels like there should be a method to specify an offset to draw columns after, but can find none in docs.
+										*/
 										table_row.col(|_ui| {});
 										continue;
 									} else if total_width - width >= rect.max.x {
