@@ -25,6 +25,7 @@ In-progress rewrite of ktisis-reader-py in Rust. Heavily under development.
 ### Issues
 - [x] [#1](https://github.com/ktisis-tools/ktisis/issues/1) Error Propagation
 - [ ] [#2](https://github.com/ktisis-tools/ktisis/issues/2) Struct Magic Strings
+- [ ] [#3](https://github.com/ktisis-tools/ktisis/issues/3) String Formatting
 
 ## Potential Features
 
