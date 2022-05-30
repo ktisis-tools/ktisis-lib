@@ -4,9 +4,12 @@ pub mod sheet;
 
 use phf::phf_map;
 
+use binread::BinRead;
+
 // Language Enum / LANGUAGE map
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, BinRead, Debug)]
+#[br(repr = u16)]
 pub enum Language {
 	None = 0,
 	Japanese = 1,

@@ -193,12 +193,10 @@ impl SqPack {
 
 		let header = reader.read::<SqPackFile>().parse::<ExhHeader>();
 
-		//println!("{:#?}", header);
-
-		let language = if header.languages.contains(&(self.language as u16)) {
+		let language = if header.languages.contains(&self.language) {
 			self.language
 		} else {
-			Language::from_u16(header.languages[0])
+			header.languages[0]
 		};
 
 		// Construct Sheet

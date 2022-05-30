@@ -46,11 +46,6 @@ impl SheetUI {
 				}
 			});
 
-			egui::ComboBox::from_label("Language")
-			.show_ui(ui, |ui| {
-				ui.selectable_label(true, "First");
-			});
-
 			ui.separator();
 		});
 
@@ -59,6 +54,19 @@ impl SheetUI {
 				let name = ktisis.sheet_current.0.as_ref().unwrap();
 				//ui.heading(name);
 				ui.label(RichText::new(name).heading().strong());
+
+				egui::ComboBox::from_id_source("sheet_language")
+				.selected_text(format!("{:?}", sheet.language))
+				.show_ui(ui, |ui| {
+					for language in &sheet.header.languages {
+						ui.selectable_label(
+							language == &sheet.language,
+							format!("{:?}", language
+						));
+					}
+				});
+
+				ui.separator();
 
 				let total_rows = sheet.header.row_count as usize;
 				let total_cols = ktisis.sheet_header.len();

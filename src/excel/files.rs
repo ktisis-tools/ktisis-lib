@@ -1,4 +1,5 @@
 use super::structs::*;
+use crate::excel::Language;
 
 use std::io::SeekFrom::*;
 
@@ -29,7 +30,7 @@ pub struct ExhHeader {
 	pub pages: Vec<ExcelPageDefinition>,
 
 	#[br(count = language_count, little)]
-	pub languages: Vec<u16>
+	pub languages: Vec<Language>
 }
 
 // ExdData (.exd) file
