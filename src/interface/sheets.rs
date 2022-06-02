@@ -40,6 +40,14 @@ impl SheetUI {
 		.min_width(200.0)
 		.max_width(300.0)
 		.show(ctx, |ui| {
+			// Displayed Sheet List
+
+			let mut lref = &mut ktisis.sheet_list;
+			if ktisis._search_len > 0 {
+				lref = &mut ktisis._search_res;
+			}
+			let list = lref.to_owned();
+
 			// Sheet Search
 
 			egui::Frame::none().inner_margin(Vec2 { x:0.0, y:5.0 }).show(ui, |ui| {
@@ -73,7 +81,7 @@ impl SheetUI {
 						if all_selected == &false {
 							ktisis.sheet_selected.retain(|_| false);
 						} else {
-							ktisis.sheet_selected = ktisis.sheet_list.to_owned();
+							ktisis.sheet_selected = list.to_owned();
 						}
 					}
 
@@ -84,7 +92,10 @@ impl SheetUI {
 					));
 
 					ui.with_layout(egui::Layout::right_to_left(), |ui| {
-						ui.button("Export");
+						let button = egui::Button::new("Export");
+						if ui.add_enabled(selected_ct > 0, button).clicked() {
+
+						}
 					});
 				});
 
@@ -92,12 +103,6 @@ impl SheetUI {
 			});
 
 			// Sheet List
-
-			let mut lref = &mut ktisis.sheet_list;
-			if ktisis._search_len > 0 {
-				lref = &mut ktisis._search_res;
-			}
-			let list = lref.to_owned();
 
 			let total_rows = list.len();
 			egui::ScrollArea::vertical().auto_shrink([false; 2]).show_rows(ui, ui.text_style_height(&text_style), total_rows, |ui, row_range| {

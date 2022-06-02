@@ -142,6 +142,18 @@ impl eframe::App for KtisisUI {
 			);
 			fonts.families.get_mut(&FontFamily::Proportional).unwrap().insert(1, "NotoSansJP".to_owned());
 
+			fonts.font_data.insert(
+				"NotoSansKR".to_owned(),
+				FontData::from_static(include_bytes!("../../fonts/NotoSansKR.otf"))
+			);
+			fonts.families.get_mut(&FontFamily::Proportional).unwrap().insert(2, "NotoSansKR".to_owned());
+
+			fonts.font_data.insert(
+				"NotoSansSC".to_owned(),
+				FontData::from_static(include_bytes!("../../fonts/NotoSansSC.otf"))
+			);
+			fonts.families.get_mut(&FontFamily::Proportional).unwrap().insert(3, "NotoSansSC".to_owned());
+
 			ctx.set_fonts(fonts);
 
 			// Finish
