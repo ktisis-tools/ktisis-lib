@@ -1,6 +1,6 @@
 [package]
 name = "ktisis"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["chirp (github.com/chrpy)"]
 repository = "https://github.com/ktisis-tools/ktisis"
 edition = "2021"
