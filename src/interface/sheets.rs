@@ -5,10 +5,14 @@ use eframe::egui;
 use egui::{Vec2, RichText};
 use egui_extras::{Size, TableBuilder};
 
+// SheetUI
+
 pub struct SheetUI {}
 
 impl SheetUI {
 	pub fn render(ktisis: &mut KtisisUI, ctx: &egui::Context) {
+		// Change Language
+
 		if let Some(language) = ktisis.sheet_change_language {
 			let cur = ktisis.sqpack.language;
 
@@ -28,11 +32,17 @@ impl SheetUI {
 			ktisis.sheet_change_language = None;
 		}
 
+		// Left Panel
+
 		let text_style = egui::TextStyle::Body;
 
-		egui::SidePanel::left("left_panel").min_width(200.0).max_width(300.0)
+		egui::SidePanel::left("sheet_left")
+		.min_width(200.0)
+		.max_width(300.0)
 		.show(ctx, |ui| {
-			egui::Frame::none().inner_margin(Vec2 { x:0.0, y:10.0 }).show(ui, |ui| {
+			// Sheet Search
+
+			egui::Frame::none().inner_margin(Vec2 { x:0.0, y:5.0 }).show(ui, |ui| {
 				ui.label("Sheet Name:");
 
 				let search = ui.text_edit_singleline(&mut ktisis.sheet_search);
@@ -45,14 +55,43 @@ impl SheetUI {
 						if len < ktisis._search_len || ktisis._search_len == 0 {
 							tar = &mut ktisis.sheet_list;
 						}
-						ktisis._search_res = tar.iter().filter(|name| name.to_lowercase().contains(&ktisis.sheet_search.to_lowercase())).cloned().collect();
+						ktisis._search_res = tar.iter().filter(|name| {
+							name.to_lowercase().contains(&ktisis.sheet_search.to_lowercase())
+						}).cloned().collect();
 					}
-					println!("{}", ktisis._search_res.len());
 					ktisis._search_len = len;
 				}
 
 				ui.separator();
+
+				// Select All / Export
+
+				ui.horizontal(|ui| {
+					let all_selected = &mut ktisis.sheet_selected_all;
+					if ui.checkbox(all_selected, "").clicked() {
+						// TODO: Not this. Reverse behaviour of sheet_selected while sheet_selected_all is true.
+						if all_selected == &false {
+							ktisis.sheet_selected.retain(|_| false);
+						} else {
+							ktisis.sheet_selected = ktisis.sheet_list.to_owned();
+						}
+					}
+
+					let selected_ct = ktisis.sheet_selected.len();
+					ui.label(format!(
+						"{selected_ct} sheet{} selected",
+						if selected_ct == 1 { "" } else { "s" }
+					));
+
+					ui.with_layout(egui::Layout::right_to_left(), |ui| {
+						ui.button("Export");
+					});
+				});
+
+				ui.separator();
 			});
+
+			// Sheet List
 
 			let mut lref = &mut ktisis.sheet_list;
 			if ktisis._search_len > 0 {
@@ -65,34 +104,53 @@ impl SheetUI {
 				for row in row_range {
 					let sheet = list.get(row).unwrap();
 
-					if ui.selectable_label(sheet == &ktisis.sheet_name, sheet).clicked() {
-						ktisis.get_sheet(&sheet.to_owned());
-					}
+					ui.horizontal(|ui| {
+						let index = ktisis.sheet_selected.iter().position(|x| x == &sheet.to_owned());
+						let is_selected = index.is_some();
+						if ui.checkbox(&mut is_selected.to_owned(), "").clicked() {
+							if is_selected {
+								ktisis.sheet_selected.remove(index.unwrap());
+								if ktisis.sheet_selected_all {
+									ktisis.sheet_selected_all = false;
+								}
+							} else {
+								ktisis.sheet_selected.push(sheet.to_owned());
+							}
+						}
+						if ui.selectable_label(sheet == &ktisis.sheet_name, sheet).clicked() {
+							ktisis.get_sheet(&sheet.to_owned());
+						}
+					});
 				}
 			});
-
-			ui.separator();
 		});
+
+		// Central Panel
 
 		egui::CentralPanel::default().show(ctx, |ui| {
 			if let Some(sheet) = &mut ktisis.sheet_current {
-				//ui.heading(name);
 				ui.label(RichText::new(ktisis.sheet_name.to_owned()).heading().strong());
 
-				egui::ComboBox::from_id_source("sheet_language")
-				.selected_text(format!("{:?}", sheet.language))
-				.show_ui(ui, |ui| {
-					for language in &sheet.header.languages {
-						let click = ui.selectable_label(
-							language == &sheet.language,
-							format!("{:?}", language
-						));
+				ui.horizontal(|ui| {
+					// Select Language
 
-						if click.clicked() {
-							ktisis.sheet_change_language = Some(*language);
+					egui::ComboBox::from_id_source("sheet_language")
+					.selected_text(format!("{:?}", sheet.language))
+					.show_ui(ui, |ui| {
+						for language in &sheet.header.languages {
+							let click = ui.selectable_label(
+								language == &sheet.language,
+								format!("{:?}", language
+							));
+
+							if click.clicked() {
+								ktisis.sheet_change_language = Some(*language);
+							}
 						}
-					}
+					});
 				});
+
+				// Display Table
 
 				ui.separator();
 

@@ -1,11 +1,13 @@
 mod style;
 mod sheets;
+mod files;
 
 use crate::sqpack::SqPack;
 use crate::excel::Language;
 use crate::excel::sheet::ExcelSheet;
 
 use sheets::SheetUI;
+use files::FileUI;
 
 use native_dialog::{MessageDialog, MessageType};
 
@@ -27,16 +29,24 @@ pub struct KtisisUI {
 
 	view: KtisisView,
 
-	sheet_list: Vec<String>,
+	// Sheet Vars
+
 	sheet_current: Option<ExcelSheet>,
-	sheet_name: String,
-	sheet_header: Vec<String>,
 	sheet_change_language: Option<Language>,
+	sheet_name: String,
+	sheet_list: Vec<String>,
+	sheet_header: Vec<String>,
 	column_display: Vec<f32>,
+	sheet_selected: Vec<String>,
+	sheet_selected_all: bool,
 
 	sheet_search: String,
 	_search_res: Vec<String>,
-	_search_len: u16
+	_search_len: u16,
+
+	// File Vars
+
+	file_search: String
 }
 
 // App Frame
@@ -45,6 +55,8 @@ impl KtisisUI {
 	pub fn new(sqpack: SqPack) -> Self {
 		let list = sqpack.get_sheet_list().expect("failed to read excel list");
 
+		// TODO: Consolidate sheet_list, sheet_selected, _search_res into one struct to optimise memory usage.
+
 		Self {
 			sqpack: sqpack,
 
@@ -52,16 +64,24 @@ impl KtisisUI {
 
 			view: KtisisView::Sheets,
 
+			// Sheet Vars
+
 			sheet_list: list,
 			sheet_current: None,
+			sheet_change_language: None,
 			sheet_name: "".to_string(),
 			sheet_header: Vec::<String>::new(),
-			sheet_change_language: None,
 			column_display: Vec::<f32>::new(),
+			sheet_selected: Vec::<String>::new(),
+			sheet_selected_all: false,
 
 			sheet_search: "".to_string(),
 			_search_res: Vec::<String>::new(),
-			_search_len: 0
+			_search_len: 0,
+
+			// File Vars
+
+			file_search: "awawa".to_string()
 		}
 	}
 
@@ -151,6 +171,7 @@ impl eframe::App for KtisisUI {
 
 		match &self.view {
 			KtisisView::Sheets => SheetUI::render(self, ctx),
+			KtisisView::Files => FileUI::render(self, ctx),
 			_ => self.no_impl()
 		};
 	}
