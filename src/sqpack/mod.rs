@@ -1,8 +1,8 @@
 pub mod files;
 mod headers;
 
-use crate::lib;
-use crate::lib::reader::DatReader;
+use crate::internal;
+use crate::internal::reader::DatReader;
 
 use crate::excel::Language;
 use crate::excel::sheet::*;
@@ -69,11 +69,11 @@ impl SqPack {
 			if let Ok(repo) = repo {
 				let path = repo.path();
 				let name = path.file_name().unwrap().to_str().unwrap();
-				let ex = lib::parse_repo(&name);
+				let ex = internal::parse_repo(&name);
 
 				// Iterate chunks
 				for chunk in 0..255 {
-					let path = path.join(lib::dat_str(cat, ex, chunk, "index"));
+					let path = path.join(internal::dat_str(cat, ex, chunk, "index"));
 					if !path.exists() { break; }
 					
 					self.index_file(&path);
@@ -86,7 +86,7 @@ impl SqPack {
 		// Parse filename
 
 		let stem = path.file_stem().unwrap().to_str().unwrap();
-		let [cat, ex, chk] = lib::parse_dat_stem(stem);
+		let [cat, ex, chk] = internal::parse_dat_stem(stem);
 
 		// Index chunk
 
@@ -128,7 +128,7 @@ impl SqPack {
 		let cat = category(&file[..first]);
 
 		// Hash
-		let hash = lib::hash_path(&file);
+		let hash = internal::hash_path(&file);
 
 		// Search chunks
 		for (_cat, chunk) in &self.chunks[&cat] {
@@ -214,7 +214,7 @@ impl SqPack {
 			}
 
 			let path = format!("exd/{name}_{}{}.exd", page_def.start_id, language.suffix());
-			let hash = lib::hash_path(&path);
+			let hash = internal::hash_path(&path);
 
 			if let Some(entry) = find.chunk.index.map.get(&hash) {
 			//let entry = find.chunk.index.map.get(&hash).unwrap();
@@ -279,7 +279,7 @@ impl SqPackChunk {
 	}
 
 	pub fn dat_str(&self) -> String {
-		lib::hex_str::<u8>(&[self.cat, self.ex, self.chunk])
+		internal::hex_str::<u8>(&[self.cat, self.ex, self.chunk])
 	}
 
 	pub fn dat_path(&self, ext: &str) -> String {
@@ -318,5 +318,5 @@ pub fn load_repo(dir: &str, repo: &str) -> Result<SqPack, Error> {
 // Category
 
 pub fn category(name: &str) -> u8 {
-	lib::CATEGORY[&name]
+	internal::CATEGORY[&name]
 }

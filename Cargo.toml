@@ -2,14 +2,15 @@
 name = "ktisis"
 version = "0.3.0"
 authors = ["chirp (github.com/chrpy)"]
-repository = "https://github.com/ktisis-tools/ktisis"
+repository = "https://github.com/ktisis-tools/ktisis-lib"
 edition = "2021"
+
+[lib]
+name = "ktisis"
+path = "src/lib.rs"
+crate-type = ["lib"]
 
 [dependencies]
 binread = "^2.2.0"
 inflate = "^0.4.5"
-egui = "^0.18.1"
-egui_extras = "^0.18.0"
-eframe = { version = "^0.18.0", features = [] }
 phf = { version = "0.10", features = ["macros"] }
-native-dialog = "^0.6.3"
